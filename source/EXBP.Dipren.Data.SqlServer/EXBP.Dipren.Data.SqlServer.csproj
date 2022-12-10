@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <Title>Microsoft SQL Server Engine Data Store for Dipren</Title>
+    <Authors>ch.jahnert</Authors>
+    <Description>This package contains a Microsoft SQL Server Engine Data Store for DIPREN. This implementation is suitable for processing clusters with hundreds or thousands of processing nodes.</Description>
+    <Copyright>Copyright (c) 2022 Christian Jähnert</Copyright>
+    <PackageProjectUrl>https://github.com/chjahnert/exbp.dipren.data.sqlserver/wiki</PackageProjectUrl>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/chjahnert/exbp.dipren.data.sqlserver</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseFile>license</PackageLicenseFile>
+    <Version>$(VersionPrefix)</Version>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\license" Visible="false">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\readme.md" Visible="false">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\Database\dipren.sql" Visible="false">
+      <Pack>True</Pack>
+      <PackagePath>\database</PackagePath>
+    </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20221209-1" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
