@@ -30,10 +30,17 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="..\Database\dipren.sql" Visible="false">
+    <None Include="..\Database\install.sql" Visible="false">
       <Pack>True</Pack>
-      <PackagePath>\database</PackagePath>
+      <PackagePath>database\dipren-sqlserver-install.sql</PackagePath>
     </None>
+    <None Include="..\Database\remove.sql" Visible="false">
+      <Pack>True</Pack>
+      <PackagePath>database\dipren-sqlserver-remove.sql</PackagePath>
+    </None>
+    <Content Include="EXBP.Dipren.Data.SqlServer.targets" Visible="false">
+      <PackagePath>build\</PackagePath>
+    </Content>
   </ItemGroup>
   
   <ItemGroup>

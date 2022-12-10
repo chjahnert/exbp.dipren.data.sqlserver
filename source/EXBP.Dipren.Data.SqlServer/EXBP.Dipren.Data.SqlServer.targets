@@ -1,0 +1,9 @@
+<Project>
+  <ItemGroup>
+    <Files Include="$(MSBuildThisFileDirectory)/../database/dipren-sqlserver-install.sql" />
+    <Files Include="$(MSBuildThisFileDirectory)/../database/dipren-sqlserver-remove.sql" />
+  </ItemGroup>
+  <Target Name="ExbpDiprenDataSqlServerCopyScriptFiles" AfterTargets="Build">
+    <Copy SourceFiles="@(Files)" DestinationFolder="$(TargetDir)/EXBP.Dipren" />
+  </Target>
+</Project>
