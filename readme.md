@@ -1,4 +1,4 @@
-### Microsoft SQL Srverver Engine Data Store for Dipren
+### Microsoft SQL Server Engine Data Store for Dipren
 
 This package contains a Microsoft SQL Server Engine Data Store for **DIPREN**. This implementation is suitable for processing clusters with hundreds or thousands of processing nodes.
 
