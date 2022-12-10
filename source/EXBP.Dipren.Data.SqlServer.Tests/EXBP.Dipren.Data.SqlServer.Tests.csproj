@@ -13,10 +13,31 @@
     </PackageReference>
     <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20221209-1" />
     <PackageReference Include="EXBP.Dipren.Data.Tests" Version="1.0.0-preview-20221209-1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="170.8.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit.Analyzers" Version="3.3.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\EXBP.Dipren.Data.SqlServer\EXBP.Dipren.Data.SqlServer.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="SqlServerEngineDataStoreResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SqlServerEngineDataStoreResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="SqlServerEngineDataStoreResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SqlServerEngineDataStoreResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
