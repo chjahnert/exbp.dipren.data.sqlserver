@@ -1,18 +1,20 @@
 ﻿
 using System.Globalization;
 
+using EXBP.Dipren.Data.Tests;
+
 using Microsoft.Data.SqlClient;
-using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
 
 using NUnit.Framework;
 
 
 namespace EXBP.Dipren.Data.SqlServer.Tests
 {
-    internal class SqlServerEngineDataStoreTests
+    internal class SqlServerEngineDataStoreTests : EngineDataStoreTests
     {
-        private const string CONNECTION_STRING = "Server = localhost; Database = master; User Id = sa; Password = 4Laqzjn!LNYa@W63; TrustServerCertificate = True";
+        private const string CONNECTION_STRING_TEMPLATE = "Server = localhost; User Id = sa; Password = 4Laqzjn!LNYa@W63; TrustServerCertificate = True";
 
         private const string PATH_SCHEMA_SCRIPT_INSTALL = @"../../../../Database/install.sql";
         private const string PATH_SCHEMA_SCRIPT_REMOVE = @"../../../../Database/remove.sql";
@@ -20,55 +22,81 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         private const string DATABASE_NAME_MASTER = "master";
         private const string DATABASE_NAME_DIPREN = "dipren";
 
+        private readonly string _connectionStringMaster;
+        private readonly string _connectionStringDipren;
 
-        [Test]
-        public void Dummy()
+
+        public SqlServerEngineDataStoreTests()
         {
+            SqlConnectionStringBuilder builderMaster = new SqlConnectionStringBuilder(CONNECTION_STRING_TEMPLATE);
+            SqlConnectionStringBuilder builderDipren = new SqlConnectionStringBuilder(CONNECTION_STRING_TEMPLATE);
+
+            builderMaster.InitialCatalog = DATABASE_NAME_MASTER;
+            builderDipren.InitialCatalog = DATABASE_NAME_DIPREN;
+
+            this._connectionStringMaster = builderMaster.ToString();
+            this._connectionStringDipren = builderDipren.ToString();
         }
+
+
+        protected override Task<IEngineDataStore> OnCreateEngineDataStoreAsync()
+            => Task.FromResult<IEngineDataStore>(new SqlServerEngineDataStoreImplementation(this._connectionStringDipren));
+
 
         [OneTimeSetUp]
         public async Task BeforeFirstTestCaseAsync()
         {
-            string statement = string.Format(CultureInfo.InvariantCulture, SqlServerEngineDataStoreResources.QueryCreateDatabase, DATABASE_NAME_DIPREN);
-
-            await this.ExecuteStatementAsync(DATABASE_NAME_MASTER, statement, CancellationToken.None);
-        }
-
-        [OneTimeTearDown]
-        public async Task AfterLastTestCaseAsync()
-        {
-            string statement = string.Format(CultureInfo.InvariantCulture, SqlServerEngineDataStoreResources.QueryDropDatabase, DATABASE_NAME_DIPREN);
-
-            await this.ExecuteStatementAsync(DATABASE_NAME_MASTER, statement, CancellationToken.None);
+            await this.DropDatabaseAsync();
+            await this.CreateDatabaseAsync();
         }
 
         [SetUp]
         public async Task BeforeEachTestCaseAsync()
         {
-            await this.DropDatabaseSchemaAsync(CancellationToken.None);
-            await this.CreateDatabaseSchemaAsync(CancellationToken.None);
+            await this.DropDatabaseSchemaAsync();
+            await this.CreateDatabaseSchemaAsync();
+        }
+
+        [TearDown]
+        public async Task AfterTestFixtureAsync()
+        {
+            await this.DropDatabaseSchemaAsync();
         }
 
         [OneTimeTearDown]
-        public async Task AfterTestFixtureAsync()
+        public async Task AfterLastTestCaseAsync()
         {
-            await this.DropDatabaseSchemaAsync(CancellationToken.None);
+            await this.DropDatabaseAsync();
         }
 
-        private async Task CreateDatabaseSchemaAsync(CancellationToken cancellation)
-            => await this.ExecuteScriptAsync(DATABASE_NAME_DIPREN, PATH_SCHEMA_SCRIPT_INSTALL, cancellation);
 
-        private async Task DropDatabaseSchemaAsync(CancellationToken cancellation)
-            => await this.ExecuteScriptAsync(DATABASE_NAME_DIPREN, PATH_SCHEMA_SCRIPT_REMOVE, cancellation);
+        private async Task CreateDatabaseAsync(CancellationToken cancellation = default)
+        {
+            string statementCreate = string.Format(CultureInfo.InvariantCulture, SqlServerEngineDataStoreResources.QueryCreateDatabase, DATABASE_NAME_DIPREN);
 
-        private async Task ExecuteScriptAsync(string database, string path, CancellationToken cancellation)
+            await this.ExecuteStatementAsync(this._connectionStringMaster, statementCreate, cancellation);
+        }
+
+        private async Task DropDatabaseAsync(CancellationToken cancellation = default)
+        {
+            string statement = string.Format(CultureInfo.InvariantCulture, SqlServerEngineDataStoreResources.QueryDropDatabase, DATABASE_NAME_DIPREN);
+
+            await this.ExecuteStatementAsync(this._connectionStringMaster, statement, cancellation);
+        }
+
+        private async Task CreateDatabaseSchemaAsync(CancellationToken cancellation = default)
+            => await this.ExecuteScriptAsync(this._connectionStringDipren, PATH_SCHEMA_SCRIPT_INSTALL, cancellation);
+
+        private async Task DropDatabaseSchemaAsync(CancellationToken cancellation = default)
+            => await this.ExecuteScriptAsync(this._connectionStringDipren, PATH_SCHEMA_SCRIPT_REMOVE, cancellation);
+
+        private async Task ExecuteScriptAsync(string connectionString, string path, CancellationToken cancellation = default)
         {
             string script = await File.ReadAllTextAsync(path, cancellation);
 
-            await using SqlConnection clientConnection = new SqlConnection(CONNECTION_STRING);
+            await using SqlConnection clientConnection = new SqlConnection(connectionString);
 
             await clientConnection.OpenAsync(cancellation);
-            await clientConnection.ChangeDatabaseAsync(database, cancellation);
 
             ServerConnection serverConnection = new ServerConnection(clientConnection);
             Server server = new Server(serverConnection);
@@ -78,12 +106,11 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
             server.ConnectionContext.CommitTransaction();
         }
 
-        private async Task ExecuteStatementAsync(string database, string text, CancellationToken cancellation)
+        private async Task ExecuteStatementAsync(string connectionString, string text, CancellationToken cancellation = default)
         {
-            await using SqlConnection connection = new SqlConnection(CONNECTION_STRING);
+            await using SqlConnection connection = new SqlConnection(connectionString);
 
             await connection.OpenAsync(cancellation);
-            await connection.ChangeDatabaseAsync(database, cancellation);
 
             await using SqlCommand command = new SqlCommand
             {

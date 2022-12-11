@@ -70,7 +70,11 @@ namespace EXBP.Dipren.Data.SqlServer.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DROP DATABASE IF EXISTS [{0}];.
+        ///   Looks up a localized string similar to IF EXISTS (SELECT 1 FROM sys.databases WHERE [name] = N&apos;{0}&apos;)
+        ///BEGIN
+        ///  ALTER DATABASE [{0}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+        ///  DROP DATABASE [{0}];
+        ///END;.
         /// </summary>
         internal static string QueryDropDatabase {
             get {
