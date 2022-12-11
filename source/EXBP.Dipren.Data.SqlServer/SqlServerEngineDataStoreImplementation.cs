@@ -578,6 +578,42 @@ namespace EXBP.Dipren.Data.SqlServer
         }
 
         /// <summary>
+        ///   Determines if a job with the specified unique identifier exists.
+        /// </summary>
+        /// <param name="transaction">
+        ///   The transaction to participate in.
+        /// </param>
+        /// <param name="id">
+        ///   The unique identifier of the job to check.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="bool"/> object that represents the asynchronous
+        ///   operation.
+        /// </returns>
+        private async Task<bool> DoesJobExistAsync(SqlTransaction transaction, string id, CancellationToken cancellation)
+        {
+            Debug.Assert(id != null);
+
+            await using SqlCommand command = new SqlCommand
+            {
+                CommandText = SqlServerEngineDataStoreImplementationResources.QueryDoesJobExist,
+                CommandType = CommandType.Text,
+                Connection = transaction.Connection,
+                Transaction = transaction
+            };
+
+            command.Parameters.AddWithValue("@id", id);
+
+            int count = (int) await command.ExecuteScalarAsync(cancellation);
+
+            return (count > 0);
+        }
+
+        /// <summary>
         ///   Determines if a partition with the specified unique identifier exists.
         /// </summary>
         /// <param name="transaction">
@@ -717,9 +753,84 @@ namespace EXBP.Dipren.Data.SqlServer
             return result;
         }
 
-        public Task<Partition> TryAcquirePartitionAsync(string jobId, string requester, DateTime timestamp, DateTime active, CancellationToken cancellation)
+        /// <summary>
+        ///   Tries to acquire a free or abandoned partition.
+        /// </summary>
+        /// <param name="jobId">
+        ///   The unique identifier of the distributed processing job.
+        /// </param>
+        /// <param name="requester">
+        ///   The identifier of the processing node trying to acquire a partition.
+        /// </param>
+        /// <param name="timestamp">
+        ///   The current timestamp.
+        /// </param>
+        /// <param name="active">
+        ///   A <see cref="DateTime"/> value that is used to determine if a partition is actively being processed.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Partition"/> object that represents the asynchronous
+        ///   operation. The <see cref="Task{TResult}.Result"/> property contains the acquired partition if succeeded;
+        ///   otherwise, <see langword="null"/>.
+        /// </returns>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A job with the specified unique identifier does not exist in the data store.
+        /// </exception>
+        public async Task<Partition> TryAcquirePartitionAsync(string jobId, string requester, DateTime timestamp, DateTime active, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(jobId, nameof(jobId));
+            Assert.ArgumentIsNotNull(requester, nameof(requester));
+
+            Partition result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
+
+                await using SqlCommand command = new SqlCommand
+                {
+                    CommandText = SqlServerEngineDataStoreImplementationResources.QueryTryAcquirePartition,
+                    CommandType = CommandType.Text,
+                    Connection = connection,
+                    Transaction = transaction
+                };
+
+                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                DateTime uktsActive = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
+
+                command.Parameters.AddWithValue("@job_id", jobId);
+                command.Parameters.AddWithValue("@owner", requester);
+                command.Parameters.AddWithValue("@updated", uktsTimestamp);
+                command.Parameters.AddWithValue("@active", uktsActive);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool found = await reader.ReadAsync(cancellation);
+
+                    if (found == true)
+                    {
+                        result = this.ReadPartition(reader);
+                    }
+                }
+
+                if (result == null)
+                {
+                    bool exists = await this.DoesJobExistAsync(transaction, jobId, cancellation);
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+                }
+
+                transaction.Commit();
+            }
+
+            return result;
         }
 
         public Task<bool> TryRequestSplitAsync(string jobId, DateTime active, CancellationToken cancellation)

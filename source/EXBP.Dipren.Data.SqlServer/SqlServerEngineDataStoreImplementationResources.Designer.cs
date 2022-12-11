@@ -76,6 +76,20 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///   Looks up a localized string similar to SELECT
         ///  COUNT(1) AS [count]
         ///FROM
+        ///  [dipren].[jobs]
+        ///WHERE
+        ///  ([id] = @id);.
+        /// </summary>
+        internal static string QueryDoesJobExist {
+            get {
+                return ResourceManager.GetString("QueryDoesJobExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT
+        ///  COUNT(1) AS [count]
+        ///FROM
         ///  [dipren].[partitions]
         ///WHERE
         ///  ([id] = @id);.
@@ -343,6 +357,38 @@ namespace EXBP.Dipren.Data.SqlServer {
         internal static string QueryRetrievePartitionById {
             get {
                 return ResourceManager.GetString("QueryRetrievePartitionById", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WITH [candidate] AS
+        ///(
+        ///  SELECT TOP 1
+        ///    [id]
+        ///  FROM
+        ///    [dipren].[partitions] WITH (ROWLOCK)
+        ///  WHERE
+        ///    ([job_id] = @job_id) AND
+        ///    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
+        ///    ([is_completed] = 0)
+        ///  ORDER BY
+        ///    [remaining] DESC
+        ///)
+        ///UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [updated] = @updated,
+        ///  [owner] = @owner,
+        ///  [acquired] = ([acquired] + 1)
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  INSERTED.[job_id] AS [job_id],
+        ///  INSERTED.[created] AS [created],
+        ///  INSERTED.[updated] AS [updated],        /// [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryTryAcquirePartition {
+            get {
+                return ResourceManager.GetString("QueryTryAcquirePartition", resourceCulture);
             }
         }
     }

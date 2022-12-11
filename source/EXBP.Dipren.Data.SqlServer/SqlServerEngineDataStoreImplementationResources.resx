@@ -123,6 +123,14 @@
 FROM
   [dipren].[jobs];</value>
   </data>
+  <data name="QueryDoesJobExist" xml:space="preserve">
+    <value>SELECT
+  COUNT(1) AS [count]
+FROM
+  [dipren].[jobs]
+WHERE
+  ([id] = @id);</value>
+  </data>
   <data name="QueryDoesPartitionExist" xml:space="preserve">
     <value>SELECT
   COUNT(1) AS [count]
@@ -344,5 +352,45 @@ FROM
   [dipren].[partitions]
 WHERE
   ([id] = @id);</value>
+  </data>
+  <data name="QueryTryAcquirePartition" xml:space="preserve">
+    <value>WITH [candidate] AS
+(
+  SELECT TOP 1
+    [id]
+  FROM
+    [dipren].[partitions] WITH (ROWLOCK)
+  WHERE
+    ([job_id] = @job_id) AND
+    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
+    ([is_completed] = 0)
+  ORDER BY
+    [remaining] DESC
+)
+UPDATE
+  [dipren].[partitions]
+SET
+  [updated] = @updated,
+  [owner] = @owner,
+  [acquired] = ([acquired] + 1)
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[job_id] AS [job_id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[owner] AS [owner],
+  INSERTED.[first] AS [first],
+  INSERTED.[last] AS [last],
+  INSERTED.[is_inclusive] AS [is_inclusive],
+  INSERTED.[position] AS [position],
+  INSERTED.[processed] AS [processed],
+  INSERTED.[remaining] AS [remaining],
+  INSERTED.[throughput] AS [throughput],
+  INSERTED.[is_completed] AS [is_completed],
+  INSERTED.[is_split_requested] AS [is_split_requested]
+FROM
+  [candidate]
+WHERE
+  ([dipren].[partitions].[id] = [candidate].[id]);</value>
   </data>
 </root>
