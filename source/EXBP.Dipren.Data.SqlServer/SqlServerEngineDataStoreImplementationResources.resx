@@ -187,6 +187,89 @@ VALUES
   @is_split_requested
 );</value>
   </data>
+  <data name="QueryMarkJobAsCompleted" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [completed] = @timestamp,
+  [state] = @state
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryMarkJobAsFailed" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [state] = @state,
+  [error] = @error
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryMarkJobAsReady" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [state] = @state
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryMarkJobAsStarted" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [started] = @timestamp,
+  [state] = @state
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
   <data name="QueryRetrieveJobById" xml:space="preserve">
     <value>SELECT
   [id] AS "id",

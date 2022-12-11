@@ -236,24 +236,244 @@ namespace EXBP.Dipren.Data.SqlServer
             throw new NotImplementedException();
         }
 
-        public Task<Job> MarkJobAsCompletedAsync(string id, DateTime timestamp, CancellationToken cancellation)
+        /// <summary>
+        ///   Marks a job as completed.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the job to update.
+        /// </param>
+        /// <param name="timestamp">
+        ///   The current date and time value.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Job"/> object that represents the asynchronous operation and
+        ///   provides access to the result of the operation.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   Argument <paramref name="id"/> is a <see langword="null"/> reference.
+        /// </exception>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A job with the specified unique identifier does not exist in the data store.
+        /// </exception>
+        public async Task<Job> MarkJobAsCompletedAsync(string id, DateTime timestamp, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(id, nameof(id));
+
+            Job result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsCompleted;
+                command.CommandType = CommandType.Text;
+
+                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                string stateName = this.ToJobStateName(JobState.Completed);
+
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
+                command.Parameters.AddWithValue("@state", stateName);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool found = await reader.ReadAsync(cancellation);
+
+                    if (found == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    result = this.ReadJob(reader);
+                }
+            }
+
+            return result;
         }
 
-        public Task<Job> MarkJobAsFailedAsync(string id, DateTime timestamp, string error, CancellationToken cancellation)
+        /// <summary>
+        ///   Marks a job as failed.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the job to update.
+        /// </param>
+        /// <param name="timestamp">
+        ///   The current date and time value.
+        /// </param>
+        /// <param name="error">
+        ///   The description of the error that caused the job to fail; or <see langword="null"/> if not available.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Job"/> object that represents the asynchronous operation and
+        ///   provides access to the result of the operation.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   Argument <paramref name="id"/> is a <see langword="null"/> reference.
+        /// </exception>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A job with the specified unique identifier does not exist in the data store.
+        /// </exception>
+        public async Task<Job> MarkJobAsFailedAsync(string id, DateTime timestamp, string error, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(id, nameof(id));
+
+            Job result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsFailed;
+                command.CommandType = CommandType.Text;
+
+                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                string stateName = this.ToJobStateName(JobState.Failed);
+
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
+                command.Parameters.AddWithValue("@state", stateName);
+                command.Parameters.AddWithValue("@error", ((object) error) ?? DBNull.Value);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool found = await reader.ReadAsync(cancellation);
+
+                    if (found == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    result = this.ReadJob(reader);
+                }
+            }
+
+            return result;
         }
 
-        public Task<Job> MarkJobAsReadyAsync(string id, DateTime timestamp, CancellationToken cancellation)
+        /// <summary>
+        ///   Marks a job as ready.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the job to update.
+        /// </param>
+        /// <param name="timestamp">
+        ///   The current date and time value.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Job"/> object that represents the asynchronous operation and
+        ///   provides access to the result of the operation.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   Argument <paramref name="id"/> is a <see langword="null"/> reference.
+        /// </exception>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A job with the specified unique identifier does not exist in the data store.
+        /// </exception>
+        public async Task<Job> MarkJobAsReadyAsync(string id, DateTime timestamp, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(id, nameof(id));
+
+            Job result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsReady;
+                command.CommandType = CommandType.Text;
+
+                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                string stateName = this.ToJobStateName(JobState.Ready);
+
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
+                command.Parameters.AddWithValue("@state", stateName);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool found = await reader.ReadAsync(cancellation);
+
+                    if (found == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    result = this.ReadJob(reader);
+                }
+            }
+
+            return result;
         }
 
-        public Task<Job> MarkJobAsStartedAsync(string id, DateTime timestamp, CancellationToken cancellation)
+        /// <summary>
+        ///   Marks a job as started.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the job to update.
+        /// </param>
+        /// <param name="timestamp">
+        ///   The current date and time value.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Job"/> object that represents the asynchronous operation and
+        ///   provides access to the result of the operation.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   Argument <paramref name="id"/> is a <see langword="null"/> reference.
+        /// </exception>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A job with the specified unique identifier does not exist in the data store.
+        /// </exception>
+        public async Task<Job> MarkJobAsStartedAsync(string id, DateTime timestamp, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(id, nameof(id));
+
+            Job result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsStarted;
+                command.CommandType = CommandType.Text;
+
+                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                string stateName = this.ToJobStateName(JobState.Processing);
+
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
+                command.Parameters.AddWithValue("@state", stateName);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool found = await reader.ReadAsync(cancellation);
+
+                    if (found == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    result = this.ReadJob(reader);
+                }
+            }
+
+            return result;
         }
 
         public Task<Partition> ReportProgressAsync(Guid id, string owner, DateTime timestamp, string position, long processed, long remaining, bool completed, double throughput, CancellationToken cancellation)

@@ -149,6 +149,113 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to UPDATE
+        ///  [dipren].[jobs]
+        ///SET
+        ///  [updated] = @timestamp,
+        ///  [completed] = @timestamp,
+        ///  [state] = @state
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  INSERTED.[created] AS [created],
+        ///  INSERTED.[updated] AS [updated],
+        ///  INSERTED.[batch_size] AS [batch_size],
+        ///  INSERTED.[timeout] AS [timeout],
+        ///  INSERTED.[clock_drift] AS [clock_drift],
+        ///  INSERTED.[started] AS [started],
+        ///  INSERTED.[completed] AS [completed],
+        ///  INSERTED.[state] AS [state],
+        ///  INSERTED.[error] AS [error]
+        ///WHERE
+        ///  ([id] = @id);.
+        /// </summary>
+        internal static string QueryMarkJobAsCompleted {
+            get {
+                return ResourceManager.GetString("QueryMarkJobAsCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPDATE
+        ///  [dipren].[jobs]
+        ///SET
+        ///  [updated] = @timestamp,
+        ///  [state] = @state,
+        ///  [error] = @error
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  INSERTED.[created] AS [created],
+        ///  INSERTED.[updated] AS [updated],
+        ///  INSERTED.[batch_size] AS [batch_size],
+        ///  INSERTED.[timeout] AS [timeout],
+        ///  INSERTED.[clock_drift] AS [clock_drift],
+        ///  INSERTED.[started] AS [started],
+        ///  INSERTED.[completed] AS [completed],
+        ///  INSERTED.[state] AS [state],
+        ///  INSERTED.[error] AS [error]
+        ///WHERE
+        ///  ([id] = @id);.
+        /// </summary>
+        internal static string QueryMarkJobAsFailed {
+            get {
+                return ResourceManager.GetString("QueryMarkJobAsFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPDATE
+        ///  [dipren].[jobs]
+        ///SET
+        ///  [updated] = @timestamp,
+        ///  [state] = @state
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  INSERTED.[created] AS [created],
+        ///  INSERTED.[updated] AS [updated],
+        ///  INSERTED.[batch_size] AS [batch_size],
+        ///  INSERTED.[timeout] AS [timeout],
+        ///  INSERTED.[clock_drift] AS [clock_drift],
+        ///  INSERTED.[started] AS [started],
+        ///  INSERTED.[completed] AS [completed],
+        ///  INSERTED.[state] AS [state],
+        ///  INSERTED.[error] AS [error]
+        ///WHERE
+        ///  ([id] = @id);.
+        /// </summary>
+        internal static string QueryMarkJobAsReady {
+            get {
+                return ResourceManager.GetString("QueryMarkJobAsReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPDATE
+        ///  [dipren].[jobs]
+        ///SET
+        ///  [updated] = @timestamp,
+        ///  [started] = @timestamp,
+        ///  [state] = @state
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  INSERTED.[created] AS [created],
+        ///  INSERTED.[updated] AS [updated],
+        ///  INSERTED.[batch_size] AS [batch_size],
+        ///  INSERTED.[timeout] AS [timeout],
+        ///  INSERTED.[clock_drift] AS [clock_drift],
+        ///  INSERTED.[started] AS [started],
+        ///  INSERTED.[completed] AS [completed],
+        ///  INSERTED.[state] AS [state],
+        ///  INSERTED.[error] AS [error]
+        ///WHERE
+        ///  ([id] = @id);.
+        /// </summary>
+        internal static string QueryMarkJobAsStarted {
+            get {
+                return ResourceManager.GetString("QueryMarkJobAsStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SELECT
         ///  [id] AS &quot;id&quot;,
         ///  [created] AS [created],
