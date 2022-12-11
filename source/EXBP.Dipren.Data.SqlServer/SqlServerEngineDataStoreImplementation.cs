@@ -19,6 +19,7 @@ namespace EXBP.Dipren.Data.SqlServer
     internal class SqlServerEngineDataStoreImplementation : EngineDataStore, IEngineDataStore
     {
         private const int SQL_ERROR_PRIMARY_KEY_VIOLATION = 2627;
+        private const int SQL_ERROR_FOREIGN_KEY_VIOLATION = 547;
 
 
         private readonly string _connectionString;
@@ -71,43 +72,140 @@ namespace EXBP.Dipren.Data.SqlServer
         {
             Assert.ArgumentIsNotNull(job, nameof(job));
 
-            await using SqlConnection connection = await this.OpenConnectionAsync(cancellation);
-            await using SqlCommand command = connection.CreateCommand();
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
 
-            command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryInsertJob;
-            command.CommandType = System.Data.CommandType.Text;
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryInsertJob;
+                command.CommandType = System.Data.CommandType.Text;
 
-            DateTime uktsCreated = DateTime.SpecifyKind(job.Created, DateTimeKind.Unspecified);
-            DateTime uktsUpdated = DateTime.SpecifyKind(job.Updated, DateTimeKind.Unspecified);
-            string stateName = this.GetJobStateName(job.State);
-            object uktsStarted = ((job.Started != null) ? DateTime.SpecifyKind(job.Started.Value, DateTimeKind.Unspecified) : DBNull.Value);
-            object uktsCompleted = ((job.Completed != null) ? DateTime.SpecifyKind(job.Completed.Value, DateTimeKind.Unspecified) : DBNull.Value);
-            object error = ((job.Error != null) ? job.Error : DBNull.Value);
+                DateTime uktsCreated = DateTime.SpecifyKind(job.Created, DateTimeKind.Unspecified);
+                DateTime uktsUpdated = DateTime.SpecifyKind(job.Updated, DateTimeKind.Unspecified);
+                string stateName = this.ToJobStateName(job.State);
+                object uktsStarted = ((job.Started != null) ? DateTime.SpecifyKind(job.Started.Value, DateTimeKind.Unspecified) : DBNull.Value);
+                object uktsCompleted = ((job.Completed != null) ? DateTime.SpecifyKind(job.Completed.Value, DateTimeKind.Unspecified) : DBNull.Value);
+                object error = ((job.Error != null) ? job.Error : DBNull.Value);
 
-            command.Parameters.AddWithValue("@id", job.Id);
+                command.Parameters.AddWithValue("@id", job.Id);
+                command.Parameters.AddWithValue("@created", uktsCreated);
+                command.Parameters.AddWithValue("@updated", uktsUpdated);
+                command.Parameters.AddWithValue("@batch_size", job.BatchSize);
+                command.Parameters.AddWithValue("@timeout", job.Timeout.Ticks);
+                command.Parameters.AddWithValue("@clock_drift", job.ClockDrift.Ticks);
+                command.Parameters.AddWithValue("@started", uktsStarted);
+                command.Parameters.AddWithValue("@completed", uktsCompleted);
+                command.Parameters.AddWithValue("@state", stateName);
+                command.Parameters.AddWithValue("@error", error);
+
+                try
+                {
+                    await command.ExecuteNonQueryAsync(cancellation);
+                }
+                catch (SqlException ex) when (ex.Number == SQL_ERROR_PRIMARY_KEY_VIOLATION)
+                {
+                    this.RaiseErrorDuplicateJobIdentifier(ex);
+                }
+            }
+        }
+
+        /// <summary>
+        ///   Inserts a new partition entry into the data store.
+        /// </summary>
+        /// <param name="partition">
+        ///   The new partition entry to insert.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task"/> object that represents the asynchronous operation.
+        /// </returns>
+        /// <exception cref="DuplicateIdentifierException">
+        ///   A partition with the specified unique identifier already exists in the data store.
+        /// </exception>
+        /// <exception cref="InvalidReferenceException">
+        ///   The job referenced by the partition does not exist within the data store.
+        /// </exception>
+        public async Task InsertPartitionAsync(Partition partition, CancellationToken cancellation)
+        {
+            Assert.ArgumentIsNotNull(partition, nameof(partition));
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await this.InsertPartitionAsync(connection, null, partition, cancellation);
+            }
+        }
+
+        /// <summary>
+        ///   Inserts a new partition entry into the data store.
+        /// </summary>
+        /// <param name="connection">
+        ///   The open database connection to use.
+        /// </param>
+        /// <param name="transaction">
+        ///   The active transaction to use.
+        /// </param>
+        /// <param name="partition">
+        ///   The new partition entry to insert.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task"/> object that represents the asynchronous operation.
+        /// </returns>
+        /// <exception cref="DuplicateIdentifierException">
+        ///   A partition with the specified unique identifier already exists in the data store.
+        /// </exception>
+        /// <exception cref="InvalidReferenceException">
+        ///   The job referenced by the partition does not exist within the data store.
+        /// </exception>
+        private async Task InsertPartitionAsync(SqlConnection connection, SqlTransaction transaction, Partition partition, CancellationToken cancellation)
+        {
+            Debug.Assert(connection != null);
+            Debug.Assert(partition != null);
+
+            await using SqlCommand command = new SqlCommand
+            {
+                CommandText = SqlServerEngineDataStoreImplementationResources.QueryInsertPartition,
+                CommandType = CommandType.Text,
+                Connection = connection,
+                Transaction = transaction
+            };
+
+            string id = partition.Id.ToString("d");
+            DateTime uktsCreated = DateTime.SpecifyKind(partition.Created, DateTimeKind.Unspecified);
+            DateTime uktsUpdated = DateTime.SpecifyKind(partition.Updated, DateTimeKind.Unspecified);
+
+            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@job_id", partition.JobId);
             command.Parameters.AddWithValue("@created", uktsCreated);
             command.Parameters.AddWithValue("@updated", uktsUpdated);
-            command.Parameters.AddWithValue("@batch_size", job.BatchSize);
-            command.Parameters.AddWithValue("@timeout", job.Timeout.Ticks);
-            command.Parameters.AddWithValue("@clock_drift", job.ClockDrift.Ticks);
-            command.Parameters.AddWithValue("@started", uktsStarted);
-            command.Parameters.AddWithValue("@completed", uktsCompleted);
-            command.Parameters.AddWithValue("@state", stateName);
-            command.Parameters.AddWithValue("@error", error);
+            command.Parameters.AddWithValue("@owner", ((object) partition.Owner) ?? DBNull.Value);
+            command.Parameters.AddWithValue("@first", partition.First);
+            command.Parameters.AddWithValue("@last", partition.Last);
+            command.Parameters.AddWithValue("@is_inclusive", partition.IsInclusive);
+            command.Parameters.AddWithValue("@position", ((object) partition.Position) ?? DBNull.Value);
+            command.Parameters.AddWithValue("@processed", partition.Processed);
+            command.Parameters.AddWithValue("@remaining", partition.Remaining);
+            command.Parameters.AddWithValue("@throughput", partition.Throughput);
+            command.Parameters.AddWithValue("@is_completed", partition.IsCompleted);
+            command.Parameters.AddWithValue("@is_split_requested", partition.IsSplitRequested);
 
             try
             {
                 await command.ExecuteNonQueryAsync(cancellation);
             }
+            catch (SqlException ex) when (ex.Number == SQL_ERROR_FOREIGN_KEY_VIOLATION)
+            {
+                this.RaiseErrorInvalidJobReference();
+            }
             catch (SqlException ex) when (ex.Number == SQL_ERROR_PRIMARY_KEY_VIOLATION)
             {
-                this.RaiseErrorDuplicateJobIdentifier(ex);
+                this.RaiseErrorDuplicatePartitionIdentifier(ex);
             }
-        }
-
-        public Task InsertPartitionAsync(Partition partition, CancellationToken cancellation)
-        {
-            throw new NotImplementedException();
         }
 
         public Task InsertSplitPartitionAsync(Partition partitionToUpdate, Partition partitionToInsert, CancellationToken cancellation)
@@ -160,26 +258,28 @@ namespace EXBP.Dipren.Data.SqlServer
         {
             Assert.ArgumentIsNotNull(id, nameof(id));
 
-            await using SqlConnection connection = await this.OpenConnectionAsync(cancellation);
-            await using SqlCommand command = connection.CreateCommand();
-
-            command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryRetrieveJobById;
-            command.CommandType = System.Data.CommandType.Text;
-
-            command.Parameters.AddWithValue("@id", id);
-
             Job result = null;
 
-            await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
             {
-                bool exists = await reader.ReadAsync(cancellation);
+                await using SqlCommand command = connection.CreateCommand();
 
-                if (exists == false)
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryRetrieveJobById;
+                command.CommandType = System.Data.CommandType.Text;
+
+                command.Parameters.AddWithValue("@id", id);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
-                    this.RaiseErrorUnknownJobIdentifier();
-                }
+                    bool exists = await reader.ReadAsync(cancellation);
 
-                result = this.ReadJob(reader);
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    result = this.ReadJob(reader);
+                }
             }
 
             return result;
@@ -190,9 +290,54 @@ namespace EXBP.Dipren.Data.SqlServer
             throw new NotImplementedException();
         }
 
-        public Task<Partition> RetrievePartitionAsync(Guid id, CancellationToken cancellation)
+        /// <summary>
+        ///   Retrieves the partition with the specified identifier from the data store.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the partition.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Partition"/> object that represents the asynchronous
+        ///   operation.
+        /// </returns>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A partition with the specified unique identifier does not exist.
+        /// </exception>
+        public async Task<Partition> RetrievePartitionAsync(Guid id, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(id, nameof(id));
+
+            Partition result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryRetrievePartitionById;
+                command.CommandType = CommandType.Text;
+
+                string sid = id.ToString("d");
+
+                command.Parameters.AddWithValue("@id", sid);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool exists = await reader.ReadAsync(cancellation);
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownPartitionIdentifier();
+                    }
+
+                    result = this.ReadPartition(reader);
+                }
+            }
+
+            return result;
         }
 
         public Task<Partition> TryAcquirePartitionAsync(string jobId, string requester, DateTime timestamp, DateTime active, CancellationToken cancellation)
@@ -256,14 +401,65 @@ namespace EXBP.Dipren.Data.SqlServer
 
             TimeSpan timeout = TimeSpan.FromTicks(ticksTimeout);
             TimeSpan clockDrift = TimeSpan.FromTicks(ticksClockDrift);
-            JobState state = this.GetJobStateValue(stateName);
+            JobState state = this.ToJobStateValue(stateName);
 
             Job result = new Job(id, created, updated, state, batchSize, timeout, clockDrift, started, completed, error);
 
             return result;
         }
 
-        private JobState GetJobStateValue(string value)
+        /// <summary>
+        ///   Constructs a <see cref="Partition"/> object from the values read from the current position of the
+        ///   specified reader.
+        /// </summary>
+        /// <param name="reader">
+        ///   The <see cref="DbDataReader"/> to read from.
+        /// </param>
+        /// <returns>
+        ///   The <see cref="Partition"/> constructed from the values read from the reader.
+        /// </returns>
+        private Partition ReadPartition(DbDataReader reader)
+        {
+            Debug.Assert(reader != null);
+
+            string sid = reader.GetString("id");
+            string jobId = reader.GetString("job_id");
+            DateTime created = reader.GetDateTime("created");
+            DateTime updated = reader.GetDateTime("updated");
+            string owner = reader.GetNullableString("owner");
+            string first = reader.GetString("first");
+            string last = reader.GetString("last");
+            bool inclusive = reader.GetBoolean("is_inclusive");
+            string position = reader.GetNullableString("position");
+            long processed = reader.GetInt64("processed");
+            long remaining = reader.GetInt64("remaining");
+            double throughput = reader.GetDouble("throughput");
+            bool completed = reader.GetBoolean("is_completed");
+            bool split = reader.GetBoolean("is_split_requested");
+
+            Guid id = Guid.ParseExact(sid, "d");
+
+            created = DateTime.SpecifyKind(created, DateTimeKind.Utc);
+            updated = DateTime.SpecifyKind(updated, DateTimeKind.Utc);
+
+            Partition result = new Partition(id, jobId, created, updated, first, last, inclusive, position, processed, remaining, owner, completed, throughput, split);
+
+            return result;
+        }
+
+        /// <summary>
+        ///   Converts the specified job state name to a <see cref="JobState"/> value.
+        /// </summary>
+        /// <param name="value">
+        ///   The value to convert.
+        /// </param>
+        /// <returns>
+        ///   The converted value.
+        /// </returns>
+        /// <exception cref="NotSupportedException">
+        ///   The specified value could not be converted.
+        /// </exception>
+        private JobState ToJobStateValue(string value)
         {
             JobState result;
 
@@ -296,7 +492,19 @@ namespace EXBP.Dipren.Data.SqlServer
             return result;
         }
 
-        private string GetJobStateName(JobState value)
+        /// <summary>
+        ///   Converts the specified job state value to a job state name.
+        /// </summary>
+        /// <param name="value">
+        ///   The value to convert.
+        /// </param>
+        /// <returns>
+        ///   The converted value.
+        /// </returns>
+        /// <exception cref="NotSupportedException">
+        ///   The specified state could not be converted.
+        /// </exception>
+        private string ToJobStateName(JobState value)
         {
             string result;
 

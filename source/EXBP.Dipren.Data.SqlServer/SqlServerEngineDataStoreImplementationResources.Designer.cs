@@ -95,6 +95,48 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to INSERT INTO [dipren].[partitions]
+        ///(
+        ///  [id],
+        ///  [job_id],
+        ///  [created],
+        ///  [updated],
+        ///  [owner],
+        ///  [first],
+        ///  [last],
+        ///  [is_inclusive],
+        ///  [position],
+        ///  [processed],
+        ///  [remaining],
+        ///  [throughput],
+        ///  [is_completed],
+        ///  [is_split_requested]
+        ///)
+        ///VALUES
+        ///(
+        ///  @id,
+        ///  @job_id,
+        ///  @created,
+        ///  @updated,
+        ///  @owner,
+        ///  @first,
+        ///  @last,
+        ///  @is_inclusive,
+        ///  @position,
+        ///  @processed,
+        ///  @remaining,
+        ///  @throughput,
+        ///  @is_completed,
+        ///  @is_split_requested
+        ///);.
+        /// </summary>
+        internal static string QueryInsertPartition {
+            get {
+                return ResourceManager.GetString("QueryInsertPartition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SELECT
         ///  [id] AS &quot;id&quot;,
         ///  [created] AS [created],
@@ -114,6 +156,33 @@ namespace EXBP.Dipren.Data.SqlServer {
         internal static string QueryRetrieveJobById {
             get {
                 return ResourceManager.GetString("QueryRetrieveJobById", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT
+        ///  [id] AS [id],
+        ///  [job_id] AS [job_id],
+        ///  [created] AS [created],
+        ///  [updated] AS [updated],
+        ///  [owner] AS [owner],
+        ///  [first] AS [first],
+        ///  [last] AS [last],
+        ///  [is_inclusive] AS [is_inclusive],
+        ///  [position] AS [position],
+        ///  [processed] AS [processed],
+        ///  [remaining] AS [remaining],
+        ///  [throughput] AS [throughput],
+        ///  [is_completed] AS [is_completed],
+        ///  [is_split_requested] AS [is_split_requested]
+        ///FROM
+        ///  [dipren].[partitions]
+        ///WHERE
+        ///  ([id] = @id);.
+        /// </summary>
+        internal static string QueryRetrievePartitionById {
+            get {
+                return ResourceManager.GetString("QueryRetrievePartitionById", resourceCulture);
             }
         }
     }
