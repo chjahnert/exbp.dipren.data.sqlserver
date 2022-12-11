@@ -61,6 +61,18 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SELECT
+        ///  COUNT_BIG(1) AS [count]
+        ///FROM
+        ///  [dipren].[jobs];.
+        /// </summary>
+        internal static string QueryCountJobs {
+            get {
+                return ResourceManager.GetString("QueryCountJobs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to INSERT INTO [dipren].[jobs]
         ///(
         ///  [id],

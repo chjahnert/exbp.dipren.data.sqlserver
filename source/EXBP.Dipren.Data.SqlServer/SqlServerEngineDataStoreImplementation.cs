@@ -44,9 +44,32 @@ namespace EXBP.Dipren.Data.SqlServer
             throw new NotImplementedException();
         }
 
-        public Task<long> CountJobsAsync(CancellationToken cancellation)
+        /// <summary>
+        ///   Returns the number of distributed processing jobs in the current data store.
+        /// </summary>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> or <see cref="long"/> that represents the asynchronous operation and can
+        ///   be used to access the result.
+        /// </returns>
+        public async Task<long> CountJobsAsync(CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            long result = 0L;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryCountJobs;
+                command.CommandType = CommandType.Text;
+
+                result = (long) await command.ExecuteScalarAsync(cancellation);
+            }
+
+            return result;
         }
 
         /// <summary>
