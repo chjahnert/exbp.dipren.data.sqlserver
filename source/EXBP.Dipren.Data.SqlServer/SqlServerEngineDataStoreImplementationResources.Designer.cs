@@ -345,6 +345,28 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to WITH &quot;aggregates&quot; AS
+        ///(
+        ///  SELECT
+        ///    t1.[id] AS [id],
+        ///    t1.[created] AS [created],
+        ///    t1.[updated] AS [updated],
+        ///    t1.[batch_size] AS [batch_size],
+        ///    t1.[timeout] AS [timeout],
+        ///    t1.[clock_drift] AS [clock_drift],
+        ///    t1.[started] AS [started],
+        ///    t1.[completed] AS [completed],
+        ///    t1.[state] AS [state],
+        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouched],
+        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] =  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryRetrieveJobStatusReport {
+            get {
+                return ResourceManager.GetString("QueryRetrieveJobStatusReport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SELECT
         ///  [id] AS [id],
         ///  [job_id] AS [job_id],

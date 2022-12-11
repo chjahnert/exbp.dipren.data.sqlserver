@@ -814,9 +814,94 @@ namespace EXBP.Dipren.Data.SqlServer
             return result;
         }
 
-        public Task<StatusReport> RetrieveJobStatusReportAsync(string id, DateTime timestamp, CancellationToken cancellation)
+        /// <summary>
+        ///   Gets a status report for the job with the specified identifier.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the job.
+        /// </param>
+        /// <param name="timestamp">
+        ///   The current date and time, expressed in UTC time.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Job"/> object that represents the asynchronous operation and
+        ///   provides access to the result of the operation.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   Argument <paramref name="id"/> is a <see langword="null"/> reference.
+        /// </exception>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A job with the specified unique identifier does not exist in the data store.
+        /// </exception>
+        public async Task<StatusReport> RetrieveJobStatusReportAsync(string id, DateTime timestamp, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(id, nameof(id));
+
+            StatusReport result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryRetrieveJobStatusReport;
+                command.CommandType = CommandType.Text;
+
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, 256);
+                SqlParameter paramTimestamp = command.Parameters.Add("@timestamp", SqlDbType.DateTime2);
+
+                paramId.Value = id;
+                paramTimestamp.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool found = await reader.ReadAsync(cancellation);
+
+                    if (found == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    Job job = this.ReadJob(reader);
+
+                    result = new StatusReport
+                    {
+                        Id = job.Id,
+                        Timestamp = timestamp,
+                        Created = job.Created,
+                        Updated = job.Updated,
+                        BatchSize = job.BatchSize,
+                        Timeout = job.Timeout,
+                        Started = job.Started,
+                        Completed = job.Completed,
+                        State = job.State,
+                        Error = job.Error,
+
+                        LastActivity = reader.GetDateTime("last_activity"),
+                        OwnershipChanges = reader.GetInt64("ownership_changes"),
+                        PendingSplitRequests = reader.GetInt64("split_requests_pending"),
+                        CurrentThroughput = reader.GetDouble("current_throughput"),
+
+                        Partitions = new StatusReport.PartitionsReport
+                        {
+                            Untouched = reader.GetInt64("partitons_untouched"),
+                            InProgress = reader.GetInt64("partitons_in_progress"),
+                            Completed = reader.GetInt64("partitions_completed")
+                        },
+
+                        Progress = new StatusReport.ProgressReport
+                        {
+                            Remaining = reader.GetNullableInt64("keys_remaining"),
+                            Completed = reader.GetNullableInt64("keys_completed")
+                        }
+                    };
+                }
+            }
+
+            return result;
         }
 
         /// <summary>

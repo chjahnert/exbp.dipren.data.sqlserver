@@ -337,6 +337,68 @@ FROM
 WHERE
   ([id] = @id);</value>
   </data>
+  <data name="QueryRetrieveJobStatusReport" xml:space="preserve">
+    <value>WITH "aggregates" AS
+(
+  SELECT
+    t1.[id] AS [id],
+    t1.[created] AS [created],
+    t1.[updated] AS [updated],
+    t1.[batch_size] AS [batch_size],
+    t1.[timeout] AS [timeout],
+    t1.[clock_drift] AS [clock_drift],
+    t1.[started] AS [started],
+    t1.[completed] AS [completed],
+    t1.[state] AS [state],
+    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouched],
+    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND ((t2.[owner] IS NOT NULL) OR (t2.[processed] &gt; 0))) THEN 1 END) AS [partitons_in_progress],
+    COUNT_BIG(CASE WHEN (t2.[is_completed] = 1) THEN 1 END) AS [partitions_completed],
+    SUM(t2.[remaining]) AS [keys_remaining],
+    SUM(t2.[processed]) AS [keys_completed],
+    COALESCE(MAX(t2.[updated]), t1.[updated]) AS [last_activity],
+    COALESCE((SELECT SUM([acquired]) - COUNT_BIG(1) FROM [dipren].[partitions] WHERE ([job_id] = t1.[id]) AND ([acquired] &gt; 0)), 0) AS [ownership_changes],
+    COUNT_BIG(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[is_split_requested] = 1)) THEN 1 END) AS [split_requests_pending],
+    COALESCE(SUM(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[updated] &gt;= DATEADD(MICROSECOND, (-1 * CAST((t1.[timeout] + t1.[clock_drift]) AS DOUBLE PRECISION)), @timestamp))) THEN [throughput] END), 0.0) AS [current_throughput]
+  FROM
+    [dipren].[jobs] t1
+    LEFT JOIN [dipren].[partitions] t2 ON (t1.[id] = t2.[job_id])
+  WHERE
+    (t1.[id] = @id)
+  GROUP BY
+    t1.[id],
+    t1.[created],
+    t1.[updated],
+    t1.[batch_size],
+    t1.[timeout],
+    t1.[clock_drift],
+    t1.[started],
+    t1.[completed],
+    t1.[state]
+)
+SELECT
+  t1.[id] AS [id],
+  t1.[created] AS [created],
+  t1.[updated] AS [updated],
+  t1.[batch_size] AS [batch_size],
+  t1.[timeout] AS [timeout],
+  t1.[clock_drift] AS [clock_drift],
+  t1.[started] AS [started],
+  t1.[completed] AS [completed],
+  t1.[state] AS [state],
+  t2.[error] AS [error],
+  t1.[partitons_untouched] AS [partitons_untouched],
+  t1.[partitons_in_progress] AS [partitons_in_progress],
+  t1.[partitions_completed] AS [partitions_completed],
+  t1.[keys_remaining] AS [keys_remaining],
+  t1.[keys_completed] AS [keys_completed],
+  t1.[last_activity] AS [last_activity],
+  t1.[ownership_changes] AS [ownership_changes],
+  t1.[split_requests_pending] AS [split_requests_pending],
+  t1.[current_throughput] AS [current_throughput]
+FROM
+  [aggregates] t1
+  INNER JOIN [dipren].[jobs] AS t2 ON (t1.[id] = t2.[id]);</value>
+  </data>
   <data name="QueryRetrievePartitionById" xml:space="preserve">
     <value>SELECT
   [id] AS [id],
