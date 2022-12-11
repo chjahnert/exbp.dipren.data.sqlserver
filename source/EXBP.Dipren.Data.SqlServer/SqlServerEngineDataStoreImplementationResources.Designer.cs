@@ -73,6 +73,20 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SELECT
+        ///  COUNT(1) AS [count]
+        ///FROM
+        ///  [dipren].[partitions]
+        ///WHERE
+        ///  ([id] = @id);.
+        /// </summary>
+        internal static string QueryDoesPartitionExist {
+            get {
+                return ResourceManager.GetString("QueryDoesPartitionExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to INSERT INTO [dipren].[jobs]
         ///(
         ///  [id],
@@ -252,6 +266,33 @@ namespace EXBP.Dipren.Data.SqlServer {
         internal static string QueryMarkJobAsStarted {
             get {
                 return ResourceManager.GetString("QueryMarkJobAsStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [updated] = @updated,
+        ///  [position] = @position,
+        ///  [processed] = @processed,
+        ///  [remaining] = @remaining,
+        ///  [throughput] = @throughput,
+        ///  [is_completed] = @completed
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  INSERTED.[job_id] AS [job_id],
+        ///  INSERTED.[created] AS [created],
+        ///  INSERTED.[updated] AS [updated],
+        ///  INSERTED.[owner] AS [owner],
+        ///  INSERTED.[first] AS [first],
+        ///  INSERTED.[last] AS [last],
+        ///  INSERTED.[is_inclusive] AS [is_inclusive],
+        ///  INSERTED.[position]  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryReportProgress {
+            get {
+                return ResourceManager.GetString("QueryReportProgress", resourceCulture);
             }
         }
         

@@ -123,6 +123,14 @@
 FROM
   [dipren].[jobs];</value>
   </data>
+  <data name="QueryDoesPartitionExist" xml:space="preserve">
+    <value>SELECT
+  COUNT(1) AS [count]
+FROM
+  [dipren].[partitions]
+WHERE
+  ([id] = @id);</value>
+  </data>
   <data name="QueryInsertJob" xml:space="preserve">
     <value>INSERT INTO [dipren].[jobs]
 (
@@ -269,6 +277,35 @@ OUTPUT
   INSERTED.[error] AS [error]
 WHERE
   ([id] = @id);</value>
+  </data>
+  <data name="QueryReportProgress" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[partitions]
+SET
+  [updated] = @updated,
+  [position] = @position,
+  [processed] = @processed,
+  [remaining] = @remaining,
+  [throughput] = @throughput,
+  [is_completed] = @completed
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[job_id] AS [job_id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[owner] AS [owner],
+  INSERTED.[first] AS [first],
+  INSERTED.[last] AS [last],
+  INSERTED.[is_inclusive] AS [is_inclusive],
+  INSERTED.[position] AS [position],
+  INSERTED.[processed] AS [processed],
+  INSERTED.[remaining] AS [remaining],
+  INSERTED.[throughput] AS [throughput],
+  INSERTED.[is_completed] AS [is_completed],
+  INSERTED.[is_split_requested] AS [is_split_requested]
+WHERE
+  ([id] = @id) AND
+  ([owner] = @owner);</value>
   </data>
   <data name="QueryRetrieveJobById" xml:space="preserve">
     <value>SELECT

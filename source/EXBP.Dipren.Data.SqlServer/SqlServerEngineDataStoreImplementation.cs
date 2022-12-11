@@ -476,9 +476,143 @@ namespace EXBP.Dipren.Data.SqlServer
             return result;
         }
 
-        public Task<Partition> ReportProgressAsync(Guid id, string owner, DateTime timestamp, string position, long processed, long remaining, bool completed, double throughput, CancellationToken cancellation)
+        /// <summary>
+        ///   Updates a partition with the progress made.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the partition.
+        /// </param>
+        /// <param name="owner">
+        ///   The unique identifier of the processing node reporting the progress.
+        /// </param>
+        /// <param name="timestamp">
+        ///   The current timestamp.
+        /// </param>
+        /// <param name="position">
+        ///   The key of the last item processed in the key range of the partition.
+        /// </param>
+        /// <param name="processed">
+        ///   The total number of items processed in this partition.
+        /// </param>
+        /// <param name="remaining">
+        ///   The total number of items remaining in this partition.
+        /// </param>
+        /// <param name="completed">
+        ///   <see langword="true"/> if the partition is completed; otherwise, <see langword="false"/>.
+        /// </param>
+        /// <param name="throughput">
+        ///   The number of items processed per second.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Partition"/> object that represents the asynchronous
+        ///   operation. The <see cref="Task{TResult}.Result"/> property contains the updated partition.
+        /// </returns>
+        /// <exception cref="LockException">
+        ///   The specified <paramref name="owner"/> no longer holds the lock on the partition.
+        /// </exception>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A partition with the specified unique identifier does not exist.
+        /// </exception>
+        public async Task<Partition> ReportProgressAsync(Guid id, string owner, DateTime timestamp, string position, long processed, long remaining, bool completed, double throughput, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(owner, nameof(owner));
+            Assert.ArgumentIsNotNull(position, nameof(position));
+
+            Partition result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
+
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryReportProgress;
+                command.CommandType = CommandType.Text;
+                command.Connection = connection;
+                command.Transaction = transaction;
+
+                string sid = id.ToString("d");
+                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+
+                command.Parameters.AddWithValue("@updated", uktsTimestamp);
+                command.Parameters.AddWithValue("@position", ((object) position) ?? DBNull.Value);
+                command.Parameters.AddWithValue("@processed", processed);
+                command.Parameters.AddWithValue("@remaining", remaining);
+                command.Parameters.AddWithValue("@completed", completed);
+                command.Parameters.AddWithValue("@id", sid);
+                command.Parameters.AddWithValue("@owner", owner);
+                command.Parameters.AddWithValue("@throughput", throughput);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool found = await reader.ReadAsync(cancellation);
+
+                    if (found == true)
+                    {
+                        result = this.ReadPartition(reader);
+                    }
+                }
+
+                if (result == null)
+                {
+                    bool exists = await this.DoesPartitionExistAsync(transaction, id, cancellation);
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+                    else
+                    {
+                        this.RaiseErrorLockNoLongerHeld();
+                    }
+                }
+
+                transaction.Commit();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///   Determines if a partition with the specified unique identifier exists.
+        /// </summary>
+        /// <param name="transaction">
+        ///   The transaction to participate in.
+        /// </param>
+        /// <param name="id">
+        ///   The unique identifier of the partition to check.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="bool"/> object that represents the asynchronous
+        ///   operation.
+        /// </returns>
+        private async Task<bool> DoesPartitionExistAsync(SqlTransaction transaction, Guid id, CancellationToken cancellation)
+        {
+            Debug.Assert(transaction != null);
+
+            await using SqlCommand command = new SqlCommand
+            {
+                CommandText = SqlServerEngineDataStoreImplementationResources.QueryDoesPartitionExist,
+                CommandType = CommandType.Text,
+                Connection = transaction.Connection,
+                Transaction = transaction
+            };
+
+            string sid = id.ToString("d");
+
+            command.Parameters.AddWithValue("@id", sid);
+
+            int count = (int) await command.ExecuteScalarAsync(cancellation);
+
+            return (count > 0);
         }
 
         /// <summary>
