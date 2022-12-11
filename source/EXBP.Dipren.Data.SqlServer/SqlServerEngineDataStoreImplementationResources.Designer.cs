@@ -62,6 +62,17 @@ namespace EXBP.Dipren.Data.SqlServer {
         
         /// <summary>
         ///   Looks up a localized string similar to SELECT
+        ///  (SELECT COUNT_BIG(1) FROM [dipren].[jobs] WHERE ([id] = @job_id)) AS [job_count],
+        ///  (SELECT COUNT_BIG(1) FROM [dipren].[partitions] WHERE ([job_id] = @job_id) AND ([is_completed] = 0)) AS [partition_count];.
+        /// </summary>
+        internal static string QueryCountIncompletePartitions {
+            get {
+                return ResourceManager.GetString("QueryCountIncompletePartitions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT
         ///  COUNT_BIG(1) AS [count]
         ///FROM
         ///  [dipren].[jobs];.

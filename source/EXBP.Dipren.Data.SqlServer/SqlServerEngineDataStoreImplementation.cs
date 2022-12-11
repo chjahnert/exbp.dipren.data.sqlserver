@@ -39,9 +39,51 @@ namespace EXBP.Dipren.Data.SqlServer
         }
 
 
-        public Task<long> CountIncompletePartitionsAsync(string id, CancellationToken cancellation)
+        /// <summary>
+        ///   Returns the number of incomplete partitions for the specified job.
+        /// </summary>
+        /// <param name="jobId">
+        ///   The unique identifier of the job for which to retrieve the number of incomplete partitions.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> or <see cref="long"/> that represents the asynchronous operation and can
+        ///   be used to access the result.
+        /// </returns>
+        public async Task<long> CountIncompletePartitionsAsync(string jobId, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(jobId, nameof(jobId));
+
+            long result = 0L;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryCountIncompletePartitions;
+                command.CommandType = CommandType.Text;
+
+                command.Parameters.AddWithValue("@job_id", jobId);
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    await reader.ReadAsync(cancellation);
+
+                    long jobCount = reader.GetInt64("job_count");
+
+                    if (jobCount == 0L)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    result = reader.GetInt64("partition_count");
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
