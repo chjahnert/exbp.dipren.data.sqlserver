@@ -391,5 +391,27 @@ namespace EXBP.Dipren.Data.SqlServer {
                 return ResourceManager.GetString("QueryTryAcquirePartition", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [updated] = @updated,
+        ///  [last] = @last,
+        ///  [is_inclusive] = @is_inclusive,
+        ///  [position] = @position,
+        ///  [processed] = @processed,
+        ///  [remaining] = @remaining,
+        ///  [throughput] = @throughput,
+        ///  [is_split_requested] = @is_split_requested
+        ///WHERE
+        ///  ([id] = @partition_id) AND
+        ///  ([owner] = @owner);.
+        /// </summary>
+        internal static string QueryUpdateSplitPartition {
+            get {
+                return ResourceManager.GetString("QueryUpdateSplitPartition", resourceCulture);
+            }
+        }
     }
 }

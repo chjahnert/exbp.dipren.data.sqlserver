@@ -393,4 +393,20 @@ FROM
 WHERE
   ([dipren].[partitions].[id] = [candidate].[id]);</value>
   </data>
+  <data name="QueryUpdateSplitPartition" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[partitions]
+SET
+  [updated] = @updated,
+  [last] = @last,
+  [is_inclusive] = @is_inclusive,
+  [position] = @position,
+  [processed] = @processed,
+  [remaining] = @remaining,
+  [throughput] = @throughput,
+  [is_split_requested] = @is_split_requested
+WHERE
+  ([id] = @partition_id) AND
+  ([owner] = @owner);</value>
+  </data>
 </root>

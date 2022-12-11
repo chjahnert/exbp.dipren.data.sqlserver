@@ -231,9 +231,83 @@ namespace EXBP.Dipren.Data.SqlServer
             }
         }
 
-        public Task InsertSplitPartitionAsync(Partition partitionToUpdate, Partition partitionToInsert, CancellationToken cancellation)
+        /// <summary>
+        ///   Inserts a split off partition while updating the split partition as an atomic operation.
+        /// </summary>
+        /// <param name="partitionToUpdate">
+        ///   The partition to update.
+        /// </param>
+        /// <param name="partitionToInsert">
+        ///   The partition to insert.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task"/> object that represents the asynchronous operation.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   Argument <paramref name="partitionToUpdate"/> or argument <paramref name="partitionToInsert"/> is a
+        ///   <see langword="null"/> reference.
+        /// </exception>
+        /// <exception cref="UnknownIdentifierException">
+        ///   The partition to update does not exist in the data store.
+        /// </exception>
+        /// <exception cref="DuplicateIdentifierException">
+        ///   The partition to insert already exists in the data store.
+        /// </exception>
+        public async Task InsertSplitPartitionAsync(Partition partitionToUpdate, Partition partitionToInsert, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(partitionToUpdate, nameof(partitionToUpdate));
+            Assert.ArgumentIsNotNull(partitionToInsert, nameof(partitionToInsert));
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
+
+                await using SqlCommand command = new SqlCommand
+                {
+                    CommandText = SqlServerEngineDataStoreImplementationResources.QueryUpdateSplitPartition,
+                    CommandType = CommandType.Text,
+                    Connection = connection,
+                    Transaction = transaction
+                };
+
+                string id = partitionToUpdate.Id.ToString("d");
+                DateTime uktsUpdated = DateTime.SpecifyKind(partitionToUpdate.Updated, DateTimeKind.Unspecified);
+
+                command.Parameters.AddWithValue("@partition_id", id);
+                command.Parameters.AddWithValue("@owner", ((object) partitionToUpdate.Owner) ?? DBNull.Value);
+                command.Parameters.AddWithValue("@updated", uktsUpdated);
+                command.Parameters.AddWithValue("@last", partitionToUpdate.Last);
+                command.Parameters.AddWithValue("@is_inclusive", partitionToUpdate.IsInclusive);
+                command.Parameters.AddWithValue("@position", ((object) partitionToUpdate.Position) ?? DBNull.Value);
+                command.Parameters.AddWithValue("@processed", partitionToUpdate.Processed);
+                command.Parameters.AddWithValue("@throughput", partitionToUpdate.Throughput);
+                command.Parameters.AddWithValue("@remaining", partitionToUpdate.Remaining);
+                command.Parameters.AddWithValue("@is_split_requested", partitionToUpdate.IsSplitRequested);
+
+                int affected = await command.ExecuteNonQueryAsync(cancellation);
+
+                if (affected != 1)
+                {
+                    bool exists = await this.DoesPartitionExistAsync(transaction, partitionToUpdate.Id, cancellation);
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownPartitionIdentifier();
+                    }
+                    else
+                    {
+                        this.RaiseErrorLockNoLongerHeld();
+                    }
+                }
+
+                await this.InsertPartitionAsync(connection, transaction, partitionToInsert, cancellation);
+
+                transaction.Commit();
+            }
         }
 
         /// <summary>
