@@ -907,9 +907,68 @@ namespace EXBP.Dipren.Data.SqlServer
             return result;
         }
 
-        public Task<bool> TryRequestSplitAsync(string jobId, DateTime active, CancellationToken cancellation)
+        /// <summary>
+        ///   Requests an existing partition to be split.
+        /// </summary>
+        /// <param name="jobId">
+        ///   The unique identifier of the distributed processing job.
+        /// </param>
+        /// <param name="active">
+        ///   A <see cref="DateTime"/> value that is used to determine whether a partition is being processed.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="bool"/> object that represents the asynchronous
+        ///   operation. The <see cref="Task{TResult}.Result"/> property contains a value indicating whether a split
+        ///   was requested.
+        /// </returns>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A job with the specified unique identifier does not exist in the data store.
+        /// </exception>
+        public async Task<bool> TryRequestSplitAsync(string jobId, DateTime active, CancellationToken cancellation)
         {
-            throw new NotImplementedException();
+            Assert.ArgumentIsNotNull(jobId, nameof(jobId));
+
+            bool result = false;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
+
+                await using SqlCommand command = new SqlCommand
+                {
+                    CommandText = SqlServerEngineDataStoreImplementationResources.QueryTryRequestSplit,
+                    CommandType = CommandType.Text,
+                    Connection = connection,
+                    Transaction = transaction
+                };
+
+                DateTime uktsActive = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
+
+                command.Parameters.AddWithValue("@job_id", jobId);
+                command.Parameters.AddWithValue("@active", uktsActive);
+
+                int affected = await command.ExecuteNonQueryAsync(cancellation);
+
+                if (affected == 0)
+                {
+                    bool exists = await this.DoesJobExistAsync(transaction, jobId, cancellation);
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+                }
+
+                transaction.Commit();
+
+                result = (affected > 0);
+            }
+
+            return result;
         }
 
         /// <summary>

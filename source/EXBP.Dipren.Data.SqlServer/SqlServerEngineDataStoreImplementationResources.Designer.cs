@@ -393,6 +393,37 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to WITH [candidate] AS
+        ///(
+        ///  SELECT TOP 1
+        ///    [id]
+        ///  FROM
+        ///    [dipren].[partitions] WITH (ROWLOCK)
+        ///  WHERE
+        ///    ([job_id] = @job_id) AND
+        ///    ([owner] IS NOT NULL) AND
+        ///    ([updated] &gt;= @active) AND
+        ///    ([is_completed] = 0) AND
+        ///    ([is_split_requested] = 0)
+        ///  ORDER BY
+        ///    [remaining] DESC
+        ///)
+        ///UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [is_split_requested] = 1
+        ///FROM
+        ///  [candidate]
+        ///WHERE
+        ///  ([dipren].[partitions].[id] = [candidate].[id]);.
+        /// </summary>
+        internal static string QueryTryRequestSplit {
+            get {
+                return ResourceManager.GetString("QueryTryRequestSplit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to UPDATE
         ///  [dipren].[partitions]
         ///SET

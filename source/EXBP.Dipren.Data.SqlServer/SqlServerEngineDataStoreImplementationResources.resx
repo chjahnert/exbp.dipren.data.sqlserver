@@ -393,6 +393,31 @@ FROM
 WHERE
   ([dipren].[partitions].[id] = [candidate].[id]);</value>
   </data>
+  <data name="QueryTryRequestSplit" xml:space="preserve">
+    <value>WITH [candidate] AS
+(
+  SELECT TOP 1
+    [id]
+  FROM
+    [dipren].[partitions] WITH (ROWLOCK)
+  WHERE
+    ([job_id] = @job_id) AND
+    ([owner] IS NOT NULL) AND
+    ([updated] &gt;= @active) AND
+    ([is_completed] = 0) AND
+    ([is_split_requested] = 0)
+  ORDER BY
+    [remaining] DESC
+)
+UPDATE
+  [dipren].[partitions]
+SET
+  [is_split_requested] = 1
+FROM
+  [candidate]
+WHERE
+  ([dipren].[partitions].[id] = [candidate].[id]);</value>
+  </data>
   <data name="QueryUpdateSplitPartition" xml:space="preserve">
     <value>UPDATE
   [dipren].[partitions]
