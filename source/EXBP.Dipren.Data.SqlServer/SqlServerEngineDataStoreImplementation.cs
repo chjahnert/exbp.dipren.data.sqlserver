@@ -840,9 +840,11 @@ namespace EXBP.Dipren.Data.SqlServer
                 await using SqlCommand command = connection.CreateCommand();
 
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryRetrieveJobById;
-                command.CommandType = System.Data.CommandType.Text;
+                command.CommandType = CommandType.Text;
 
-                command.Parameters.AddWithValue("@id", id);
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+
+                paramId.Value = id;
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
