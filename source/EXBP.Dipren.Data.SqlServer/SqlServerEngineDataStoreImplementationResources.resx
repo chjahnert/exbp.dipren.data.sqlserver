@@ -1,0 +1,504 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="QueryCountIncompletePartitions" xml:space="preserve">
+    <value>SELECT
+  (SELECT COUNT_BIG(1) FROM [dipren].[jobs] WHERE ([id] = @job_id)) AS [job_count],
+  (SELECT COUNT_BIG(1) FROM [dipren].[partitions] WHERE ([job_id] = @job_id) AND ([is_completed] = 0)) AS [partition_count];</value>
+  </data>
+  <data name="QueryCountJobs" xml:space="preserve">
+    <value>SELECT
+  COUNT_BIG(1) AS [count]
+FROM
+  [dipren].[jobs];</value>
+  </data>
+  <data name="QueryDoesJobExist" xml:space="preserve">
+    <value>SELECT
+  COUNT(1) AS [count]
+FROM
+  [dipren].[jobs]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryDoesPartitionExist" xml:space="preserve">
+    <value>SELECT
+  COUNT(1) AS [count]
+FROM
+  [dipren].[partitions]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryInsertJob" xml:space="preserve">
+    <value>INSERT INTO [dipren].[jobs]
+(
+  [id],
+  [created],
+  [updated],
+  [batch_size],
+  [timeout],
+  [clock_drift],
+  [started],
+  [completed],
+  [state],
+  [error]
+)
+VALUES
+(
+  @id,
+  @created,
+  @updated,
+  @batch_size,
+  @timeout,
+  @clock_drift,
+  @started,
+  @completed,
+  @state,
+  @error
+);</value>
+  </data>
+  <data name="QueryInsertPartition" xml:space="preserve">
+    <value>INSERT INTO [dipren].[partitions]
+(
+  [id],
+  [job_id],
+  [created],
+  [updated],
+  [owner],
+  [first],
+  [last],
+  [is_inclusive],
+  [position],
+  [processed],
+  [remaining],
+  [throughput],
+  [is_completed],
+  [is_split_requested]
+)
+VALUES
+(
+  @id,
+  @job_id,
+  @created,
+  @updated,
+  @owner,
+  @first,
+  @last,
+  @is_inclusive,
+  @position,
+  @processed,
+  @remaining,
+  @throughput,
+  @is_completed,
+  @is_split_requested
+);</value>
+  </data>
+  <data name="QueryMarkJobAsCompleted" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [completed] = @timestamp,
+  [state] = @state
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryMarkJobAsFailed" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [state] = @state,
+  [error] = @error
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryMarkJobAsReady" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [state] = @state
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryMarkJobAsStarted" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[jobs]
+SET
+  [updated] = @timestamp,
+  [started] = @timestamp,
+  [state] = @state
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[batch_size] AS [batch_size],
+  INSERTED.[timeout] AS [timeout],
+  INSERTED.[clock_drift] AS [clock_drift],
+  INSERTED.[started] AS [started],
+  INSERTED.[completed] AS [completed],
+  INSERTED.[state] AS [state],
+  INSERTED.[error] AS [error]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryReportProgress" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[partitions]
+SET
+  [updated] = @updated,
+  [position] = @position,
+  [processed] = @processed,
+  [remaining] = @remaining,
+  [throughput] = @throughput,
+  [is_completed] = @completed
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[job_id] AS [job_id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[owner] AS [owner],
+  INSERTED.[first] AS [first],
+  INSERTED.[last] AS [last],
+  INSERTED.[is_inclusive] AS [is_inclusive],
+  INSERTED.[position] AS [position],
+  INSERTED.[processed] AS [processed],
+  INSERTED.[remaining] AS [remaining],
+  INSERTED.[throughput] AS [throughput],
+  INSERTED.[is_completed] AS [is_completed],
+  INSERTED.[is_split_requested] AS [is_split_requested]
+WHERE
+  ([id] = @id) AND
+  ([owner] = @owner);</value>
+  </data>
+  <data name="QueryRetrieveJobById" xml:space="preserve">
+    <value>SELECT
+  [id] AS "id",
+  [created] AS [created],
+  [updated] AS [updated],
+  [batch_size] AS [batch_size],
+  [timeout] AS [timeout],
+  [clock_drift] AS [clock_drift],
+  [started] AS [started],
+  [completed] AS [completed],
+  [state] AS [state],
+  [error] AS [error]
+FROM
+  [dipren].[jobs]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryRetrieveJobStatusReport" xml:space="preserve">
+    <value>WITH "aggregates" AS
+(
+  SELECT
+    t1.[id] AS [id],
+    t1.[created] AS [created],
+    t1.[updated] AS [updated],
+    t1.[batch_size] AS [batch_size],
+    t1.[timeout] AS [timeout],
+    t1.[clock_drift] AS [clock_drift],
+    t1.[started] AS [started],
+    t1.[completed] AS [completed],
+    t1.[state] AS [state],
+    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouched],
+    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND ((t2.[owner] IS NOT NULL) OR (t2.[processed] &gt; 0))) THEN 1 END) AS [partitons_in_progress],
+    COUNT_BIG(CASE WHEN (t2.[is_completed] = 1) THEN 1 END) AS [partitions_completed],
+    SUM(t2.[remaining]) AS [keys_remaining],
+    SUM(t2.[processed]) AS [keys_completed],
+    COALESCE(MAX(t2.[updated]), t1.[updated]) AS [last_activity],
+    COALESCE((SELECT SUM([acquired]) - COUNT_BIG(1) FROM [dipren].[partitions] WHERE ([job_id] = t1.[id]) AND ([acquired] &gt; 0)), 0) AS [ownership_changes],
+    COUNT_BIG(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[is_split_requested] = 1)) THEN 1 END) AS [split_requests_pending],
+    COALESCE(SUM(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[updated] &gt;= DATEADD(MICROSECOND, (-1 * CAST((t1.[timeout] + t1.[clock_drift]) AS DOUBLE PRECISION)), @timestamp))) THEN [throughput] END), 0.0) AS [current_throughput]
+  FROM
+    [dipren].[jobs] t1
+    LEFT JOIN [dipren].[partitions] t2 ON (t1.[id] = t2.[job_id])
+  WHERE
+    (t1.[id] = @id)
+  GROUP BY
+    t1.[id],
+    t1.[created],
+    t1.[updated],
+    t1.[batch_size],
+    t1.[timeout],
+    t1.[clock_drift],
+    t1.[started],
+    t1.[completed],
+    t1.[state]
+)
+SELECT
+  t1.[id] AS [id],
+  t1.[created] AS [created],
+  t1.[updated] AS [updated],
+  t1.[batch_size] AS [batch_size],
+  t1.[timeout] AS [timeout],
+  t1.[clock_drift] AS [clock_drift],
+  t1.[started] AS [started],
+  t1.[completed] AS [completed],
+  t1.[state] AS [state],
+  t2.[error] AS [error],
+  t1.[partitons_untouched] AS [partitons_untouched],
+  t1.[partitons_in_progress] AS [partitons_in_progress],
+  t1.[partitions_completed] AS [partitions_completed],
+  t1.[keys_remaining] AS [keys_remaining],
+  t1.[keys_completed] AS [keys_completed],
+  t1.[last_activity] AS [last_activity],
+  t1.[ownership_changes] AS [ownership_changes],
+  t1.[split_requests_pending] AS [split_requests_pending],
+  t1.[current_throughput] AS [current_throughput]
+FROM
+  [aggregates] t1
+  INNER JOIN [dipren].[jobs] AS t2 ON (t1.[id] = t2.[id]);</value>
+  </data>
+  <data name="QueryRetrievePartitionById" xml:space="preserve">
+    <value>SELECT
+  [id] AS [id],
+  [job_id] AS [job_id],
+  [created] AS [created],
+  [updated] AS [updated],
+  [owner] AS [owner],
+  [first] AS [first],
+  [last] AS [last],
+  [is_inclusive] AS [is_inclusive],
+  [position] AS [position],
+  [processed] AS [processed],
+  [remaining] AS [remaining],
+  [throughput] AS [throughput],
+  [is_completed] AS [is_completed],
+  [is_split_requested] AS [is_split_requested]
+FROM
+  [dipren].[partitions]
+WHERE
+  ([id] = @id);</value>
+  </data>
+  <data name="QueryTryAcquirePartition" xml:space="preserve">
+    <value>WITH [candidate] AS
+(
+  SELECT TOP 1
+    [id]
+  FROM
+    [dipren].[partitions] WITH (ROWLOCK)
+  WHERE
+    ([job_id] = @job_id) AND
+    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
+    ([is_completed] = 0)
+  ORDER BY
+    [remaining] DESC
+)
+UPDATE
+  [dipren].[partitions]
+SET
+  [updated] = @updated,
+  [owner] = @owner,
+  [acquired] = ([acquired] + 1)
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[job_id] AS [job_id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[owner] AS [owner],
+  INSERTED.[first] AS [first],
+  INSERTED.[last] AS [last],
+  INSERTED.[is_inclusive] AS [is_inclusive],
+  INSERTED.[position] AS [position],
+  INSERTED.[processed] AS [processed],
+  INSERTED.[remaining] AS [remaining],
+  INSERTED.[throughput] AS [throughput],
+  INSERTED.[is_completed] AS [is_completed],
+  INSERTED.[is_split_requested] AS [is_split_requested]
+FROM
+  [candidate]
+WHERE
+  ([dipren].[partitions].[id] = [candidate].[id]);</value>
+  </data>
+  <data name="QueryTryRequestSplit" xml:space="preserve">
+    <value>WITH [candidate] AS
+(
+  SELECT TOP 1
+    [id]
+  FROM
+    [dipren].[partitions] WITH (ROWLOCK)
+  WHERE
+    ([job_id] = @job_id) AND
+    ([owner] IS NOT NULL) AND
+    ([updated] &gt;= @active) AND
+    ([is_completed] = 0) AND
+    ([is_split_requested] = 0)
+  ORDER BY
+    [remaining] DESC
+)
+UPDATE
+  [dipren].[partitions]
+SET
+  [is_split_requested] = 1
+FROM
+  [candidate]
+WHERE
+  ([dipren].[partitions].[id] = [candidate].[id]);</value>
+  </data>
+  <data name="QueryUpdateSplitPartition" xml:space="preserve">
+    <value>UPDATE
+  [dipren].[partitions]
+SET
+  [updated] = @updated,
+  [last] = @last,
+  [is_inclusive] = @is_inclusive,
+  [position] = @position,
+  [processed] = @processed,
+  [remaining] = @remaining,
+  [throughput] = @throughput,
+  [is_split_requested] = @is_split_requested
+WHERE
+  ([id] = @partition_id) AND
+  ([owner] = @owner);</value>
+  </data>
+</root>

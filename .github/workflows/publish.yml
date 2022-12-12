@@ -1,0 +1,54 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+env:
+  SOURCE_DIRECTORY: './source'
+  RESULT_DIRECTORY: './output/result'
+  PACKAGE_DIRECTORY: ${{github.workspace}}/output/packages
+  PACKAGE_GALLERY: 'https://api.nuget.org/v3/index.json'
+
+jobs:
+  Publish:
+
+    runs-on: ubuntu-latest
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: YES
+          MSSQL_SA_PASSWORD: 4Laqzjn!LNYa@W63
+          MSSQL_PID: Developer
+        ports:
+          - "1433:1433"
+
+    steps:
+    - name: 'Check-out'
+      uses: actions/checkout@v3
+
+    - name: 'Setup .NET 6.0'
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: 'Set version'
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+
+    - name: 'Restore dependencies'
+      run: dotnet restore ${{env.SOURCE_DIRECTORY}}
+
+    - name: 'Build solution'
+      run: dotnet build --configuration Release /p:Version=${VERSION} -p:ContinuousIntegrationBuild=true --no-restore ${{env.SOURCE_DIRECTORY}}
+
+    - name: Verify solution
+      run: dotnet test --no-restore --verbosity normal --logger trx --results-directory ${{env.RESULT_DIRECTORY}} ${{env.SOURCE_DIRECTORY}}
+
+    - name: 'Create packages'
+      run: dotnet pack ${{env.SOURCE_DIRECTORY}} --configuration Release --no-restore --no-build -p:PackageVersion=${VERSION} -p:ContinuousIntegrationBuild=true --output ${{env.PACKAGE_DIRECTORY}}
+
+    - name: 'Publish packages'
+      run: dotnet nuget push ${{env.PACKAGE_DIRECTORY}}/*.nupkg --source ${{env.PACKAGE_GALLERY}} --api-key ${{secrets.NUGET_DIPREN_TOKEN}}
