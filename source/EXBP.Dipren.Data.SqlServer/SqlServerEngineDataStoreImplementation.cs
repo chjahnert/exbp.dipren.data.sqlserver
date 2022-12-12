@@ -1048,13 +1048,15 @@ namespace EXBP.Dipren.Data.SqlServer
                     Transaction = transaction
                 };
 
-                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
-                DateTime uktsActive = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
+                SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
+                SqlParameter paramUpdated = command.Parameters.Add("@updated", SqlDbType.DateTime2);
+                SqlParameter paramActive = command.Parameters.Add("@active", SqlDbType.DateTime2);
 
-                command.Parameters.AddWithValue("@job_id", jobId);
-                command.Parameters.AddWithValue("@owner", requester);
-                command.Parameters.AddWithValue("@updated", uktsTimestamp);
-                command.Parameters.AddWithValue("@active", uktsActive);
+                paramJobId.Value = jobId;
+                paramOwner.Value = requester;
+                paramUpdated.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
