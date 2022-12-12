@@ -40,7 +40,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
 
 
         protected override Task<IEngineDataStore> OnCreateEngineDataStoreAsync()
-            => Task.FromResult<IEngineDataStore>(new SqlServerEngineDataStoreImplementation(this._connectionStringDipren));
+            => Task.FromResult<IEngineDataStore>(new SqlServerEngineDataStore(this._connectionStringDipren));
 
 
         [OneTimeSetUp]
