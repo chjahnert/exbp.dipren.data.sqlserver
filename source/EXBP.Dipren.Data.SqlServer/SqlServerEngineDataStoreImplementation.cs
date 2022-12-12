@@ -689,16 +689,23 @@ namespace EXBP.Dipren.Data.SqlServer
                 command.Connection = connection;
                 command.Transaction = transaction;
 
-                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.UniqueIdentifier);
+                SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
+                SqlParameter paramUpdated = command.Parameters.Add("@updated", SqlDbType.DateTime2);
+                SqlParameter paramPosition = command.Parameters.Add("@position", SqlDbType.Text);
+                SqlParameter paramProcessed = command.Parameters.Add("@processed", SqlDbType.BigInt);
+                SqlParameter paramRemaining = command.Parameters.Add("@remaining", SqlDbType.BigInt);
+                SqlParameter paramCompleted = command.Parameters.Add("@completed", SqlDbType.Bit);
+                SqlParameter paramThroughput = command.Parameters.Add("@throughput", SqlDbType.Float);
 
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@owner", owner);
-                command.Parameters.AddWithValue("@updated", uktsTimestamp);
-                command.Parameters.AddWithValue("@position", ((object) position) ?? DBNull.Value);
-                command.Parameters.AddWithValue("@processed", processed);
-                command.Parameters.AddWithValue("@remaining", remaining);
-                command.Parameters.AddWithValue("@completed", completed);
-                command.Parameters.AddWithValue("@throughput", throughput);
+                paramId.Value = id;
+                paramOwner.Value = owner;
+                paramUpdated.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                paramPosition.Value = ((object) position) ?? DBNull.Value;
+                paramProcessed.Value = processed;
+                paramRemaining.Value = remaining;
+                paramCompleted.Value = completed;
+                paramThroughput.Value = throughput;
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
