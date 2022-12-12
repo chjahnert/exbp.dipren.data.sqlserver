@@ -1,8 +1,4 @@
 ﻿
-//
-//TODO:  Update parameter usage in all methods.
-//
-
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -1123,10 +1119,11 @@ namespace EXBP.Dipren.Data.SqlServer
                     Transaction = transaction
                 };
 
-                DateTime uktsActive = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
+                SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramActive = command.Parameters.Add("@active", SqlDbType.DateTime2);
 
-                command.Parameters.AddWithValue("@job_id", jobId);
-                command.Parameters.AddWithValue("@active", uktsActive);
+                paramJobId.Value = jobId;
+                paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
 
                 int affected = await command.ExecuteNonQueryAsync(cancellation);
 
