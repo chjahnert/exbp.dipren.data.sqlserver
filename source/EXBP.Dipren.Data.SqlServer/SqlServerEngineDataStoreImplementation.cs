@@ -341,18 +341,27 @@ namespace EXBP.Dipren.Data.SqlServer
                     Transaction = transaction
                 };
 
-                DateTime uktsUpdated = DateTime.SpecifyKind(partitionToUpdate.Updated, DateTimeKind.Unspecified);
+                SqlParameter paramId = command.Parameters.Add("@partition_id", SqlDbType.UniqueIdentifier);
+                SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
+                SqlParameter paramUpdated = command.Parameters.Add("@updated", SqlDbType.DateTime2);
+                SqlParameter paramLast = command.Parameters.Add("@last", SqlDbType.Text);
+                SqlParameter paramIsInclusive = command.Parameters.Add("@is_inclusive", SqlDbType.Bit);
+                SqlParameter paramPosition = command.Parameters.Add("@position", SqlDbType.Text);
+                SqlParameter paramProcessed = command.Parameters.Add("@processed", SqlDbType.BigInt);
+                SqlParameter paramRemaining = command.Parameters.Add("@remaining", SqlDbType.BigInt);
+                SqlParameter paramThroughput = command.Parameters.Add("@throughput", SqlDbType.Float);
+                SqlParameter paramIsSplitRequested = command.Parameters.Add("@is_split_requested", SqlDbType.Bit);
 
-                command.Parameters.AddWithValue("@partition_id", partitionToUpdate.Id);
-                command.Parameters.AddWithValue("@owner", ((object) partitionToUpdate.Owner) ?? DBNull.Value);
-                command.Parameters.AddWithValue("@updated", uktsUpdated);
-                command.Parameters.AddWithValue("@last", partitionToUpdate.Last);
-                command.Parameters.AddWithValue("@is_inclusive", partitionToUpdate.IsInclusive);
-                command.Parameters.AddWithValue("@position", ((object) partitionToUpdate.Position) ?? DBNull.Value);
-                command.Parameters.AddWithValue("@processed", partitionToUpdate.Processed);
-                command.Parameters.AddWithValue("@throughput", partitionToUpdate.Throughput);
-                command.Parameters.AddWithValue("@remaining", partitionToUpdate.Remaining);
-                command.Parameters.AddWithValue("@is_split_requested", partitionToUpdate.IsSplitRequested);
+                paramId.Value = partitionToUpdate.Id;
+                paramOwner.Value = ((object) partitionToUpdate.Owner) ?? DBNull.Value;
+                paramUpdated.Value = DateTime.SpecifyKind(partitionToUpdate.Updated, DateTimeKind.Unspecified);
+                paramLast.Value = partitionToUpdate.Last;
+                paramIsInclusive.Value = partitionToUpdate.IsInclusive;
+                paramPosition.Value = ((object) partitionToUpdate.Position) ?? DBNull.Value;
+                paramProcessed.Value = partitionToUpdate.Processed;
+                paramRemaining.Value = partitionToUpdate.Remaining;
+                paramThroughput.Value = partitionToUpdate.Throughput;
+                paramIsSplitRequested.Value = partitionToUpdate.IsSplitRequested;
 
                 int affected = await command.ExecuteNonQueryAsync(cancellation);
 
