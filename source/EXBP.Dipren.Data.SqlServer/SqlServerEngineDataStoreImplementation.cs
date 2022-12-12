@@ -421,12 +421,13 @@ namespace EXBP.Dipren.Data.SqlServer
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsCompleted;
                 command.CommandType = CommandType.Text;
 
-                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
-                string stateName = this.ToJobStateName(JobState.Completed);
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramTimestamp = command.Parameters.Add("@timestamp", SqlDbType.DateTime2);
+                SqlParameter paramState = command.Parameters.Add("@state", SqlDbType.VarChar, COLUMN_JOB_STATE_LENGTH);
 
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
-                command.Parameters.AddWithValue("@state", stateName);
+                paramId.Value = id;
+                paramTimestamp.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                paramState.Value = this.ToJobStateName(JobState.Completed);
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
@@ -483,13 +484,15 @@ namespace EXBP.Dipren.Data.SqlServer
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsFailed;
                 command.CommandType = CommandType.Text;
 
-                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
-                string stateName = this.ToJobStateName(JobState.Failed);
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramTimestamp = command.Parameters.Add("@timestamp", SqlDbType.DateTime2);
+                SqlParameter paramState = command.Parameters.Add("@state", SqlDbType.VarChar, COLUMN_JOB_STATE_LENGTH);
+                SqlParameter paramError = command.Parameters.Add("@error", SqlDbType.Text);
 
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
-                command.Parameters.AddWithValue("@state", stateName);
-                command.Parameters.AddWithValue("@error", ((object) error) ?? DBNull.Value);
+                paramId.Value = id;
+                paramTimestamp.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                paramState.Value = this.ToJobStateName(JobState.Failed);
+                paramError.Value = ((object) error) ?? DBNull.Value;
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
@@ -543,12 +546,13 @@ namespace EXBP.Dipren.Data.SqlServer
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsReady;
                 command.CommandType = CommandType.Text;
 
-                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
-                string stateName = this.ToJobStateName(JobState.Ready);
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramTimestamp = command.Parameters.Add("@timestamp", SqlDbType.DateTime2);
+                SqlParameter paramState = command.Parameters.Add("@state", SqlDbType.VarChar, COLUMN_JOB_STATE_LENGTH);
 
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
-                command.Parameters.AddWithValue("@state", stateName);
+                paramId.Value = id;
+                paramTimestamp.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                paramState.Value = this.ToJobStateName(JobState.Ready);
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
@@ -602,12 +606,13 @@ namespace EXBP.Dipren.Data.SqlServer
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryMarkJobAsStarted;
                 command.CommandType = CommandType.Text;
 
-                DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
-                string stateName = this.ToJobStateName(JobState.Processing);
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramTimestamp = command.Parameters.Add("@timestamp", SqlDbType.DateTime2);
+                SqlParameter paramState = command.Parameters.Add("@state", SqlDbType.VarChar, COLUMN_JOB_STATE_LENGTH);
 
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@timestamp", uktsTimestamp);
-                command.Parameters.AddWithValue("@state", stateName);
+                paramId.Value = id;
+                paramTimestamp.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
+                paramState.Value = this.ToJobStateName(JobState.Processing);
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
