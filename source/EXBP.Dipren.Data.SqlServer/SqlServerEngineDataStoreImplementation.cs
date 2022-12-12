@@ -1,4 +1,8 @@
 ﻿
+//
+//TODO:  Update parameter usage in all methods.
+//
+
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -20,6 +24,10 @@ namespace EXBP.Dipren.Data.SqlServer
     {
         private const int SQL_ERROR_PRIMARY_KEY_VIOLATION = 2627;
         private const int SQL_ERROR_FOREIGN_KEY_VIOLATION = 547;
+
+        private const int COLUMN_JOB_NAME_LENGTH = 256;
+        private const int COLUMN_JOB_STATE_LENGTH = 16;
+        private const int COLUMN_PARTITION_OWNER_LENGTH = 256;
 
 
         private readonly string _connectionString;
@@ -66,7 +74,9 @@ namespace EXBP.Dipren.Data.SqlServer
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryCountIncompletePartitions;
                 command.CommandType = CommandType.Text;
 
-                command.Parameters.AddWithValue("@job_id", jobId);
+                SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+
+                paramJobId.Value = jobId;
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
@@ -142,25 +152,29 @@ namespace EXBP.Dipren.Data.SqlServer
                 await using SqlCommand command = connection.CreateCommand();
 
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryInsertJob;
-                command.CommandType = System.Data.CommandType.Text;
+                command.CommandType = CommandType.Text;
 
-                DateTime uktsCreated = DateTime.SpecifyKind(job.Created, DateTimeKind.Unspecified);
-                DateTime uktsUpdated = DateTime.SpecifyKind(job.Updated, DateTimeKind.Unspecified);
-                string stateName = this.ToJobStateName(job.State);
-                object uktsStarted = ((job.Started != null) ? DateTime.SpecifyKind(job.Started.Value, DateTimeKind.Unspecified) : DBNull.Value);
-                object uktsCompleted = ((job.Completed != null) ? DateTime.SpecifyKind(job.Completed.Value, DateTimeKind.Unspecified) : DBNull.Value);
-                object error = ((job.Error != null) ? job.Error : DBNull.Value);
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramCreated = command.Parameters.Add("@created", SqlDbType.DateTime2);
+                SqlParameter paramUpdated = command.Parameters.Add("@updated", SqlDbType.DateTime2);
+                SqlParameter paramBatchSize = command.Parameters.Add("@batch_size", SqlDbType.Int);
+                SqlParameter paramTimeout = command.Parameters.Add("@timeout", SqlDbType.BigInt);
+                SqlParameter paramClockDrift = command.Parameters.Add("@clock_drift", SqlDbType.BigInt);
+                SqlParameter paramStarted = command.Parameters.Add("@started", SqlDbType.DateTime2);
+                SqlParameter paramCompleted = command.Parameters.Add("@completed", SqlDbType.DateTime2);
+                SqlParameter paramState = command.Parameters.Add("@state", SqlDbType.VarChar, COLUMN_JOB_STATE_LENGTH);
+                SqlParameter paramError = command.Parameters.Add("@error", SqlDbType.Text);
 
-                command.Parameters.AddWithValue("@id", job.Id);
-                command.Parameters.AddWithValue("@created", uktsCreated);
-                command.Parameters.AddWithValue("@updated", uktsUpdated);
-                command.Parameters.AddWithValue("@batch_size", job.BatchSize);
-                command.Parameters.AddWithValue("@timeout", job.Timeout.Ticks);
-                command.Parameters.AddWithValue("@clock_drift", job.ClockDrift.Ticks);
-                command.Parameters.AddWithValue("@started", uktsStarted);
-                command.Parameters.AddWithValue("@completed", uktsCompleted);
-                command.Parameters.AddWithValue("@state", stateName);
-                command.Parameters.AddWithValue("@error", error);
+                paramId.Value = job.Id;
+                paramCreated.Value = DateTime.SpecifyKind(job.Created, DateTimeKind.Unspecified);
+                paramUpdated.Value = DateTime.SpecifyKind(job.Updated, DateTimeKind.Unspecified);
+                paramBatchSize.Value = job.BatchSize;
+                paramTimeout.Value = job.Timeout.Ticks;
+                paramClockDrift.Value = job.ClockDrift.Ticks;
+                paramStarted.Value = ((job.Started != null) ? DateTime.SpecifyKind(job.Started.Value, DateTimeKind.Unspecified) : DBNull.Value);
+                paramCompleted.Value = ((job.Completed != null) ? DateTime.SpecifyKind(job.Completed.Value, DateTimeKind.Unspecified) : DBNull.Value);
+                paramState.Value = this.ToJobStateName(job.State);
+                paramError.Value = ((job.Error != null) ? job.Error : DBNull.Value);
 
                 try
                 {
