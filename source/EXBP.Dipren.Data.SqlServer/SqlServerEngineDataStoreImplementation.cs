@@ -254,23 +254,35 @@ namespace EXBP.Dipren.Data.SqlServer
                 Transaction = transaction
             };
 
-            DateTime uktsCreated = DateTime.SpecifyKind(partition.Created, DateTimeKind.Unspecified);
-            DateTime uktsUpdated = DateTime.SpecifyKind(partition.Updated, DateTimeKind.Unspecified);
+            SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.UniqueIdentifier);
+            SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+            SqlParameter paramCreated = command.Parameters.Add("@created", SqlDbType.DateTime2);
+            SqlParameter paramUpdated = command.Parameters.Add("@updated", SqlDbType.DateTime2);
+            SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
+            SqlParameter paramFirst = command.Parameters.Add("@first", SqlDbType.Text);
+            SqlParameter paramLast = command.Parameters.Add("@last", SqlDbType.Text);
+            SqlParameter paramIsInclusive = command.Parameters.Add("@is_inclusive", SqlDbType.Bit);
+            SqlParameter paramPosition = command.Parameters.Add("@position", SqlDbType.Text);
+            SqlParameter paramProcessed = command.Parameters.Add("@processed", SqlDbType.BigInt);
+            SqlParameter paramRemaining = command.Parameters.Add("@remaining", SqlDbType.BigInt);
+            SqlParameter paramThroughput = command.Parameters.Add("@throughput", SqlDbType.Float);
+            SqlParameter paramIsCompleted = command.Parameters.Add("@is_completed", SqlDbType.Bit);
+            SqlParameter paramIsSplitRequested = command.Parameters.Add("@is_split_requested", SqlDbType.Bit);
 
-            command.Parameters.AddWithValue("@id", partition.Id);
-            command.Parameters.AddWithValue("@job_id", partition.JobId);
-            command.Parameters.AddWithValue("@created", uktsCreated);
-            command.Parameters.AddWithValue("@updated", uktsUpdated);
-            command.Parameters.AddWithValue("@owner", ((object) partition.Owner) ?? DBNull.Value);
-            command.Parameters.AddWithValue("@first", partition.First);
-            command.Parameters.AddWithValue("@last", partition.Last);
-            command.Parameters.AddWithValue("@is_inclusive", partition.IsInclusive);
-            command.Parameters.AddWithValue("@position", ((object) partition.Position) ?? DBNull.Value);
-            command.Parameters.AddWithValue("@processed", partition.Processed);
-            command.Parameters.AddWithValue("@remaining", partition.Remaining);
-            command.Parameters.AddWithValue("@throughput", partition.Throughput);
-            command.Parameters.AddWithValue("@is_completed", partition.IsCompleted);
-            command.Parameters.AddWithValue("@is_split_requested", partition.IsSplitRequested);
+            paramId.Value = partition.Id;
+            paramJobId.Value = partition.JobId;
+            paramCreated.Value = DateTime.SpecifyKind(partition.Created, DateTimeKind.Unspecified);
+            paramUpdated.Value = DateTime.SpecifyKind(partition.Updated, DateTimeKind.Unspecified);
+            paramOwner.Value = ((object) partition.Owner) ?? DBNull.Value;
+            paramFirst.Value = partition.First;
+            paramLast.Value = partition.Last;
+            paramIsInclusive.Value = partition.IsInclusive;
+            paramPosition.Value = ((object) partition.Position) ?? DBNull.Value;
+            paramProcessed.Value = partition.Processed;
+            paramRemaining.Value = partition.Remaining;
+            paramThroughput.Value = partition.Throughput;
+            paramIsCompleted.Value = partition.IsCompleted;
+            paramIsSplitRequested.Value = partition.IsSplitRequested;
 
             try
             {
