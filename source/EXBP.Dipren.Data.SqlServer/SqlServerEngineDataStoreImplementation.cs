@@ -863,6 +863,56 @@ namespace EXBP.Dipren.Data.SqlServer
         }
 
         /// <summary>
+        ///   Retrieves the partition with the specified identifier from the data store.
+        /// </summary>
+        /// <param name="id">
+        ///   The unique identifier of the partition.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="Partition"/> object that represents the asynchronous
+        ///   operation.
+        /// </returns>
+        /// <exception cref="UnknownIdentifierException">
+        ///   A partition with the specified unique identifier does not exist.
+        /// </exception>
+        public async Task<Partition> RetrievePartitionAsync(Guid id, CancellationToken cancellation)
+        {
+            Assert.ArgumentIsNotNull(id, nameof(id));
+
+            Partition result = null;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryRetrievePartitionById;
+                command.CommandType = CommandType.Text;
+
+                SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.UniqueIdentifier);
+
+                paramId.Value = id;
+
+                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
+                {
+                    bool exists = await reader.ReadAsync(cancellation);
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownPartitionIdentifier();
+                    }
+
+                    result = this.ReadPartition(reader);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         ///   Gets a status report for the job with the specified identifier.
         /// </summary>
         /// <param name="id">
@@ -946,56 +996,6 @@ namespace EXBP.Dipren.Data.SqlServer
                             Completed = reader.GetNullableInt64("keys_completed")
                         }
                     };
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        ///   Retrieves the partition with the specified identifier from the data store.
-        /// </summary>
-        /// <param name="id">
-        ///   The unique identifier of the partition.
-        /// </param>
-        /// <param name="cancellation">
-        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
-        ///   canceled.
-        /// </param>
-        /// <returns>
-        ///   A <see cref="Task{TResult}"/> of <see cref="Partition"/> object that represents the asynchronous
-        ///   operation.
-        /// </returns>
-        /// <exception cref="UnknownIdentifierException">
-        ///   A partition with the specified unique identifier does not exist.
-        /// </exception>
-        public async Task<Partition> RetrievePartitionAsync(Guid id, CancellationToken cancellation)
-        {
-            Assert.ArgumentIsNotNull(id, nameof(id));
-
-            Partition result = null;
-
-            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
-            {
-                await using SqlCommand command = connection.CreateCommand();
-
-                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryRetrievePartitionById;
-                command.CommandType = CommandType.Text;
-
-                string sid = id.ToString("d");
-
-                command.Parameters.AddWithValue("@id", sid);
-
-                await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
-                {
-                    bool exists = await reader.ReadAsync(cancellation);
-
-                    if (exists == false)
-                    {
-                        this.RaiseErrorUnknownPartitionIdentifier();
-                    }
-
-                    result = this.ReadPartition(reader);
                 }
             }
 
