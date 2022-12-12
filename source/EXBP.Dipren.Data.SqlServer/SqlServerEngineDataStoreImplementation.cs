@@ -240,11 +240,10 @@ namespace EXBP.Dipren.Data.SqlServer
                 Transaction = transaction
             };
 
-            string id = partition.Id.ToString("d");
             DateTime uktsCreated = DateTime.SpecifyKind(partition.Created, DateTimeKind.Unspecified);
             DateTime uktsUpdated = DateTime.SpecifyKind(partition.Updated, DateTimeKind.Unspecified);
 
-            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", partition.Id);
             command.Parameters.AddWithValue("@job_id", partition.JobId);
             command.Parameters.AddWithValue("@created", uktsCreated);
             command.Parameters.AddWithValue("@updated", uktsUpdated);
@@ -316,10 +315,9 @@ namespace EXBP.Dipren.Data.SqlServer
                     Transaction = transaction
                 };
 
-                string id = partitionToUpdate.Id.ToString("d");
                 DateTime uktsUpdated = DateTime.SpecifyKind(partitionToUpdate.Updated, DateTimeKind.Unspecified);
 
-                command.Parameters.AddWithValue("@partition_id", id);
+                command.Parameters.AddWithValue("@partition_id", partitionToUpdate.Id);
                 command.Parameters.AddWithValue("@owner", ((object) partitionToUpdate.Owner) ?? DBNull.Value);
                 command.Parameters.AddWithValue("@updated", uktsUpdated);
                 command.Parameters.AddWithValue("@last", partitionToUpdate.Last);
@@ -651,16 +649,15 @@ namespace EXBP.Dipren.Data.SqlServer
                 command.Connection = connection;
                 command.Transaction = transaction;
 
-                string sid = id.ToString("d");
                 DateTime uktsTimestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
 
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@owner", owner);
                 command.Parameters.AddWithValue("@updated", uktsTimestamp);
                 command.Parameters.AddWithValue("@position", ((object) position) ?? DBNull.Value);
                 command.Parameters.AddWithValue("@processed", processed);
                 command.Parameters.AddWithValue("@remaining", remaining);
                 command.Parameters.AddWithValue("@completed", completed);
-                command.Parameters.AddWithValue("@id", sid);
-                command.Parameters.AddWithValue("@owner", owner);
                 command.Parameters.AddWithValue("@throughput", throughput);
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
@@ -1170,7 +1167,7 @@ namespace EXBP.Dipren.Data.SqlServer
         {
             Debug.Assert(reader != null);
 
-            string sid = reader.GetString("id");
+            Guid id = reader.GetGuid("id");
             string jobId = reader.GetString("job_id");
             DateTime created = reader.GetDateTime("created");
             DateTime updated = reader.GetDateTime("updated");
@@ -1184,8 +1181,6 @@ namespace EXBP.Dipren.Data.SqlServer
             double throughput = reader.GetDouble("throughput");
             bool completed = reader.GetBoolean("is_completed");
             bool split = reader.GetBoolean("is_split_requested");
-
-            Guid id = Guid.ParseExact(sid, "d");
 
             created = DateTime.SpecifyKind(created, DateTimeKind.Utc);
             updated = DateTime.SpecifyKind(updated, DateTimeKind.Utc);

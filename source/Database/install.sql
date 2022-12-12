@@ -26,7 +26,7 @@ GO
 
 CREATE TABLE [dipren].[partitions]
 (
-  [id] CHAR(36) NOT NULL,
+  [id] UNIQUEIDENTIFIER NOT NULL,
   [job_id] VARCHAR(256) NOT NULL,
   [created] DATETIME NOT NULL,
   [updated] DATETIME NOT NULL,
