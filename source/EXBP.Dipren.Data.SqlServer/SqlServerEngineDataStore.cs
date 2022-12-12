@@ -21,7 +21,7 @@ namespace EXBP.Dipren.Data.SqlServer
     ///     In case the built in retry mechanism does not meet your needs, you can inject you can implement your own
     ///     retry strategy either from scratch or use an external framework such as
     ///     <see href="http://www.thepollyproject.org/">The Polly Project</see>. An example is provided in the
-    ///     <see href="http://documentation">documentation</see>.
+    ///     <see href="https://github.com/chjahnert/exbp.dipren.data.sqlserver/wiki">documentation</see>.
     ///   </para>
     ///   <para>
     ///     The database schema has to be deployed before using this class.
