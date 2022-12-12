@@ -766,7 +766,9 @@ namespace EXBP.Dipren.Data.SqlServer
                 Transaction = transaction
             };
 
-            command.Parameters.AddWithValue("@id", id);
+            SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+
+            paramId.Value = id;
 
             int count = (int) await command.ExecuteScalarAsync(cancellation);
 
@@ -802,9 +804,9 @@ namespace EXBP.Dipren.Data.SqlServer
                 Transaction = transaction
             };
 
-            string sid = id.ToString("d");
+            SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.UniqueIdentifier);
 
-            command.Parameters.AddWithValue("@id", sid);
+            paramId.Value = id;
 
             int count = (int) await command.ExecuteScalarAsync(cancellation);
 
