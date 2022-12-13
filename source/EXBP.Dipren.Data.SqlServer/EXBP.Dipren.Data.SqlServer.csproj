@@ -43,7 +43,7 @@
     </None>
     <Content Include="EXBP.Dipren.Data.SqlServer.targets" Visible="false">
       <Pack>True</Pack>
-      <PackagePath>build\</PackagePath>
+      <PackagePath>build\EXBP.Dipren.Data.SqlServer.targets</PackagePath>
     </Content>
   </ItemGroup>
   
