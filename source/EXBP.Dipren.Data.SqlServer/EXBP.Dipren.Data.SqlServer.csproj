@@ -13,7 +13,7 @@
     <RepositoryUrl>https://github.com/chjahnert/exbp.dipren.data.sqlserver</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseFile>license</PackageLicenseFile>
-    <BuildTimestamp>$([System.DateTime]::Now.ToString(yyyyMMddHHmmss))</BuildTimestamp>
+    <BuildTimestamp>$([System.DateTime]::Now.ToString(yyyyMMddHHmm))</BuildTimestamp>
     <VersionPrefix>1.0.0</VersionPrefix>
     <VersionSuffix>dev-$(BuildTimestamp)</VersionSuffix>
     <IncludeSymbols>True</IncludeSymbols>
