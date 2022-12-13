@@ -42,6 +42,7 @@
       <PackagePath>database\dipren-sqlserver-remove.sql</PackagePath>
     </None>
     <Content Include="EXBP.Dipren.Data.SqlServer.targets" Visible="false">
+      <Pack>True</Pack>
       <PackagePath>build\</PackagePath>
     </Content>
   </ItemGroup>
