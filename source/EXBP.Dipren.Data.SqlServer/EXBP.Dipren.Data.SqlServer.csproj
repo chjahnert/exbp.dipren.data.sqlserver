@@ -13,7 +13,7 @@
     <RepositoryUrl>https://github.com/chjahnert/exbp.dipren.data.sqlserver</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseFile>license</PackageLicenseFile>
-    <BuildTimestamp>$([System.DateTime]::Now.ToString(yyyyMMddHHmmss))</BuildTimestamp>
+    <BuildTimestamp>$([System.DateTime]::Now.ToString(yyyyMMddHHmm))</BuildTimestamp>
     <VersionPrefix>1.0.0</VersionPrefix>
     <VersionSuffix>dev-$(BuildTimestamp)</VersionSuffix>
     <IncludeSymbols>True</IncludeSymbols>
@@ -47,7 +47,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20221209-1" />
+    <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20221213-1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
