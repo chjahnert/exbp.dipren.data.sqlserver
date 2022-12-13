@@ -47,7 +47,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20221209-1" />
+    <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20221213-1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
