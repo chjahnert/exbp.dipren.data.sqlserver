@@ -345,7 +345,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH &quot;aggregates&quot; AS
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+        ///
+        ///WITH &quot;aggregates&quot; AS
         ///(
         ///  SELECT
         ///    t1.[id] AS [id],
@@ -357,8 +359,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    t1.[started] AS [started],
         ///    t1.[completed] AS [completed],
         ///    t1.[state] AS [state],
-        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouched],
-        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] =  [rest of string was truncated]&quot;;.
+        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouc [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryRetrieveJobStatusReport {
             get {
@@ -394,30 +395,29 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH [candidate] AS
+        ///   Looks up a localized string similar to WITH [candidates] AS
         ///(
-        ///  SELECT TOP 1
+        ///  SELECT TOP (@candidates)
         ///    [id]
         ///  FROM
-        ///    [dipren].[partitions] WITH (ROWLOCK)
+        ///    [dipren].[partitions] WITH (NOLOCK)
         ///  WHERE
         ///    ([job_id] = @job_id) AND
         ///    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
         ///    ([is_completed] = 0)
         ///  ORDER BY
         ///    [remaining] DESC
-        ///)
-        ///UPDATE
-        ///  [dipren].[partitions]
-        ///SET
-        ///  [updated] = @updated,
-        ///  [owner] = @owner,
-        ///  [acquired] = ([acquired] + 1)
-        ///OUTPUT
-        ///  INSERTED.[id] AS [id],
-        ///  INSERTED.[job_id] AS [job_id],
-        ///  INSERTED.[created] AS [created],
-        ///  INSERTED.[updated] AS [updated],        /// [rest of string was truncated]&quot;;.
+        ///),
+        ///[candidate] AS
+        ///(
+        ///  SELECT TOP 1
+        ///    t2.[id]
+        ///  FROM
+        ///    [candidates] AS t1
+        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
+        ///  WHERE
+        ///    (t2.[job_id] = @job_id) AND
+        ///    ((t2.[owner] IS NULL) OR (t2.[updat [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryAcquirePartition {
             get {
@@ -426,12 +426,12 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH [candidate] AS
+        ///   Looks up a localized string similar to WITH [candidates] AS
         ///(
-        ///  SELECT TOP 1
+        ///  SELECT TOP (@candidates)
         ///    [id]
         ///  FROM
-        ///    [dipren].[partitions] WITH (ROWLOCK)
+        ///    [dipren].[partitions] WITH (NOLOCK)
         ///  WHERE
         ///    ([job_id] = @job_id) AND
         ///    ([owner] IS NOT NULL) AND
@@ -440,15 +440,16 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    ([is_split_requested] = 0)
         ///  ORDER BY
         ///    [remaining] DESC
-        ///)
-        ///UPDATE
-        ///  [dipren].[partitions]
-        ///SET
-        ///  [is_split_requested] = 1
-        ///FROM
-        ///  [candidate]
-        ///WHERE
-        ///  ([dipren].[partitions].[id] = [candidate].[id]);.
+        ///),
+        ///[candidate] AS
+        ///(
+        ///  SELECT TOP 1
+        ///    t2.[id]
+        ///  FROM
+        ///    [candidates] AS t1
+        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
+        ///  WHERE
+        ///    (t2.[job_id] = @job_id) [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
