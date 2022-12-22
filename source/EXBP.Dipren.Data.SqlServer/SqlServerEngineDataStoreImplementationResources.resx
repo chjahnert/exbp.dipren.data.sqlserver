@@ -338,7 +338,9 @@ WHERE
   ([id] = @id);</value>
   </data>
   <data name="QueryRetrieveJobStatusReport" xml:space="preserve">
-    <value>WITH "aggregates" AS
+    <value>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+WITH "aggregates" AS
 (
   SELECT
     t1.[id] AS [id],

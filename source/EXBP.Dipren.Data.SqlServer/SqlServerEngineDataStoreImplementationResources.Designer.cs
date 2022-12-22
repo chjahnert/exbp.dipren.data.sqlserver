@@ -345,7 +345,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH &quot;aggregates&quot; AS
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+        ///
+        ///WITH &quot;aggregates&quot; AS
         ///(
         ///  SELECT
         ///    t1.[id] AS [id],
@@ -357,8 +359,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    t1.[started] AS [started],
         ///    t1.[completed] AS [completed],
         ///    t1.[state] AS [state],
-        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouched],
-        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] =  [rest of string was truncated]&quot;;.
+        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouc [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryRetrieveJobStatusReport {
             get {
