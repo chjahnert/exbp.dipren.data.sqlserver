@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EXBP.Dipren.Data.SqlServer", "EXBP.Dipren.Data.SqlServer\EXBP.Dipren.Data.SqlServer.csproj", "{B54DDF1C-37AA-4F5E-8D88-AE40E198DCA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EXBP.Dipren.Data.SqlServer", "EXBP.Dipren.Data.SqlServer\EXBP.Dipren.Data.SqlServer.csproj", "{B54DDF1C-37AA-4F5E-8D88-AE40E198DCA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EXBP.Dipren.Data.SqlServer.Tests", "EXBP.Dipren.Data.SqlServer.Tests\EXBP.Dipren.Data.SqlServer.Tests.csproj", "{855E53FC-4DA7-41E3-B174-35C362E777D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EXBP.Dipren.Data.SqlServer.Tests", "EXBP.Dipren.Data.SqlServer.Tests\EXBP.Dipren.Data.SqlServer.Tests.csproj", "{855E53FC-4DA7-41E3-B174-35C362E777D7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{A63BC35E-BD11-49D0-B25A-64FE40F02824}"
+	ProjectSection(SolutionItems) = preProject
+		Database\install.sql = Database\install.sql
+		Database\remove.sql = Database\remove.sql
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

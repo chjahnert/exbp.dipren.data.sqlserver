@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -265,7 +266,7 @@ namespace EXBP.Dipren.Data.SqlServer
             SqlParameter paramRemaining = command.Parameters.Add("@remaining", SqlDbType.BigInt);
             SqlParameter paramThroughput = command.Parameters.Add("@throughput", SqlDbType.Float);
             SqlParameter paramIsCompleted = command.Parameters.Add("@is_completed", SqlDbType.Bit);
-            SqlParameter paramIsSplitRequested = command.Parameters.Add("@is_split_requested", SqlDbType.Bit);
+            SqlParameter paramSplitRequester = command.Parameters.Add("@split_requester", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
 
             paramId.Value = partition.Id;
             paramJobId.Value = partition.JobId;
@@ -280,7 +281,7 @@ namespace EXBP.Dipren.Data.SqlServer
             paramRemaining.Value = partition.Remaining;
             paramThroughput.Value = partition.Throughput;
             paramIsCompleted.Value = partition.IsCompleted;
-            paramIsSplitRequested.Value = partition.IsSplitRequested;
+            paramSplitRequester.Value = ((object) partition.SplitRequester) ?? DBNull.Value;
 
             try
             {
@@ -348,7 +349,7 @@ namespace EXBP.Dipren.Data.SqlServer
                 SqlParameter paramProcessed = command.Parameters.Add("@processed", SqlDbType.BigInt);
                 SqlParameter paramRemaining = command.Parameters.Add("@remaining", SqlDbType.BigInt);
                 SqlParameter paramThroughput = command.Parameters.Add("@throughput", SqlDbType.Float);
-                SqlParameter paramIsSplitRequested = command.Parameters.Add("@is_split_requested", SqlDbType.Bit);
+                SqlParameter paramSplitRequester = command.Parameters.Add("@split_requester", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
 
                 paramId.Value = partitionToUpdate.Id;
                 paramOwner.Value = ((object) partitionToUpdate.Owner) ?? DBNull.Value;
@@ -359,7 +360,7 @@ namespace EXBP.Dipren.Data.SqlServer
                 paramProcessed.Value = partitionToUpdate.Processed;
                 paramRemaining.Value = partitionToUpdate.Remaining;
                 paramThroughput.Value = partitionToUpdate.Throughput;
-                paramIsSplitRequested.Value = partitionToUpdate.IsSplitRequested;
+                paramSplitRequester.Value = ((object) partitionToUpdate.SplitRequester) ?? DBNull.Value;
 
                 int affected = await command.ExecuteNonQueryAsync(cancellation);
 
@@ -1090,6 +1091,9 @@ namespace EXBP.Dipren.Data.SqlServer
         /// <param name="jobId">
         ///   The unique identifier of the distributed processing job.
         /// </param>
+        /// <param name="requester">
+        ///   The unique identifier of the processing node trying to request a split.
+        /// </param>
         /// <param name="active">
         ///   A <see cref="DateTime"/> value that is used to determine whether a partition is being processed.
         /// </param>
@@ -1102,12 +1106,17 @@ namespace EXBP.Dipren.Data.SqlServer
         ///   operation. The <see cref="Task{TResult}.Result"/> property contains a value indicating whether a split
         ///   was requested.
         /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   Argument <paramref name="jobId"/> or argument <paramref name="requester"/> is a <see langword="null"/>
+        ///   reference.
+        /// </exception>
         /// <exception cref="UnknownIdentifierException">
         ///   A job with the specified unique identifier does not exist in the data store.
         /// </exception>
-        public async Task<bool> TryRequestSplitAsync(string jobId, DateTime active, CancellationToken cancellation)
+        public async Task<bool> TryRequestSplitAsync(string jobId, string requester, DateTime active, CancellationToken cancellation)
         {
             Assert.ArgumentIsNotNull(jobId, nameof(jobId));
+            Assert.ArgumentIsNotNull(requester, nameof(requester));
 
             bool result = false;
 
@@ -1124,10 +1133,12 @@ namespace EXBP.Dipren.Data.SqlServer
                 };
 
                 SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
+                SqlParameter paramRequester = command.Parameters.Add("@requester", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
                 SqlParameter paramActive = command.Parameters.Add("@active", SqlDbType.DateTime2);
                 SqlParameter paramCandidates = command.Parameters.Add("@candidates", SqlDbType.Int);
 
                 paramJobId.Value = jobId;
+                paramRequester.Value = requester;
                 paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
                 paramCandidates.Value = MAXIMUM_CANDIDATES;
 
@@ -1146,6 +1157,52 @@ namespace EXBP.Dipren.Data.SqlServer
                 transaction.Commit();
 
                 result = (affected > 0);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///   Determines whether a split request for the specified requester is still pending.
+        /// </summary>
+        /// <param name="jobId">
+        ///   The unique identifier of the distributed processing job.
+        /// </param>
+        /// <param name="requester">
+        ///   The unique identifier of the processing node that requested a split.
+        /// </param>
+        /// <param name="cancellation">
+        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
+        ///   canceled.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Task{TResult}"/> of <see cref="bool"/> object that represents the asynchronous
+        ///   operation. The <see cref="Task{TResult}.Result"/> property contains a value indicating whether a split
+        ///   request is pending.
+        /// </returns>
+        public async Task<bool> IsSplitRequestPendingAsync(string jobId, string requester, CancellationToken cancellation)
+        {
+            Assert.ArgumentIsNotNull(jobId, nameof(jobId));
+            Assert.ArgumentIsNotNull(requester, nameof(requester));
+
+            bool result = false;
+
+            await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
+            {
+                await using SqlCommand command = connection.CreateCommand();
+
+                command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryIsSplitRequestPending;
+                command.CommandType = CommandType.Text;
+
+                SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH, jobId);
+                SqlParameter paramRequester = command.Parameters.Add("@requester", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH, requester);
+
+                paramJobId.Value = jobId;
+                paramRequester.Value = requester;
+
+                int value = (int) await command.ExecuteScalarAsync(cancellation);
+
+                result = (value > 0);
             }
 
             return result;
@@ -1236,12 +1293,12 @@ namespace EXBP.Dipren.Data.SqlServer
             long remaining = reader.GetInt64("remaining");
             double throughput = reader.GetDouble("throughput");
             bool completed = reader.GetBoolean("is_completed");
-            bool split = reader.GetBoolean("is_split_requested");
+            string requester = reader.GetNullableString("split_requester");
 
             created = DateTime.SpecifyKind(created, DateTimeKind.Utc);
             updated = DateTime.SpecifyKind(updated, DateTimeKind.Utc);
 
-            Partition result = new Partition(id, jobId, created, updated, first, last, inclusive, position, processed, remaining, owner, completed, throughput, split);
+            Partition result = new Partition(id, jobId, created, updated, first, last, inclusive, position, processed, remaining, owner, completed, throughput, requester);
 
             return result;
         }

@@ -188,7 +188,7 @@ VALUES
   [remaining],
   [throughput],
   [is_completed],
-  [is_split_requested]
+  [split_requester]
 )
 VALUES
 (
@@ -205,8 +205,14 @@ VALUES
   @remaining,
   @throughput,
   @is_completed,
-  @is_split_requested
+  @split_requester
 );</value>
+  </data>
+  <data name="QueryIsSplitRequestPending" xml:space="preserve">
+    <value>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+SELECT
+  COALESCE((SELECT TOP (1) 1 FROM [dipren].[partitions] WHERE ([job_id] = @job_id) AND ([split_requester] = @requester)), 0) AS [requests_exist];</value>
   </data>
   <data name="QueryMarkJobAsCompleted" xml:space="preserve">
     <value>UPDATE
@@ -300,7 +306,8 @@ SET
   [processed] = @processed,
   [remaining] = @remaining,
   [throughput] = @throughput,
-  [is_completed] = @completed
+  [is_completed] = @completed,
+  [split_requester] = CASE WHEN @completed = 1 THEN NULL ELSE [split_requester] END
 OUTPUT
   INSERTED.[id] AS [id],
   INSERTED.[job_id] AS [job_id],
@@ -315,7 +322,7 @@ OUTPUT
   INSERTED.[remaining] AS [remaining],
   INSERTED.[throughput] AS [throughput],
   INSERTED.[is_completed] AS [is_completed],
-  INSERTED.[is_split_requested] AS [is_split_requested]
+  INSERTED.[split_requester] AS [split_requester]
 WHERE
   ([id] = @id) AND
   ([owner] = @owner);</value>
@@ -359,7 +366,7 @@ WITH "aggregates" AS
     SUM(t2.[processed]) AS [keys_completed],
     COALESCE(MAX(t2.[updated]), t1.[updated]) AS [last_activity],
     COALESCE((SELECT SUM([acquired]) - COUNT_BIG(1) FROM [dipren].[partitions] WHERE ([job_id] = t1.[id]) AND ([acquired] &gt; 0)), 0) AS [ownership_changes],
-    COUNT_BIG(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[is_split_requested] = 1)) THEN 1 END) AS [split_requests_pending],
+    COUNT_BIG(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[split_requester] IS NOT NULL)) THEN 1 END) AS [split_requests_pending],
     COALESCE(SUM(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[updated] &gt;= DATEADD(MICROSECOND, (-1 * CAST((t1.[timeout] + t1.[clock_drift]) AS DOUBLE PRECISION)), @timestamp))) THEN [throughput] END), 0.0) AS [current_throughput]
   FROM
     [dipren].[jobs] t1
@@ -416,7 +423,7 @@ FROM
   [remaining] AS [remaining],
   [throughput] AS [throughput],
   [is_completed] AS [is_completed],
-  [is_split_requested] AS [is_split_requested]
+  [split_requester] AS [split_requester]
 FROM
   [dipren].[partitions]
 WHERE
@@ -470,7 +477,7 @@ OUTPUT
   INSERTED.[remaining] AS [remaining],
   INSERTED.[throughput] AS [throughput],
   INSERTED.[is_completed] AS [is_completed],
-  INSERTED.[is_split_requested] AS [is_split_requested]
+  INSERTED.[split_requester] AS [split_requester]
 FROM
   [candidate]
 WHERE
@@ -488,7 +495,7 @@ WHERE
     ([owner] IS NOT NULL) AND
     ([updated] &gt;= @active) AND
     ([is_completed] = 0) AND
-    ([is_split_requested] = 0)
+    ([split_requester] IS NULL)
   ORDER BY
     [remaining] DESC
 ),
@@ -504,14 +511,14 @@ WHERE
     (t2.[owner] IS NOT NULL) AND
     (t2.[updated] &gt;= @active) AND
     (t2.[is_completed] = 0) AND
-    (t2.[is_split_requested] = 0)
+    (t2.[split_requester] IS NULL)
   ORDER BY
     NEWID() DESC
 )
 UPDATE
   [dipren].[partitions]
 SET
-  [is_split_requested] = 1
+  [split_requester] = @requester
 FROM
   [candidate]
 WHERE
@@ -528,7 +535,7 @@ SET
   [processed] = @processed,
   [remaining] = @remaining,
   [throughput] = @throughput,
-  [is_split_requested] = @is_split_requested
+  [split_requester] = @split_requester
 WHERE
   ([id] = @partition_id) AND
   ([owner] = @owner);</value>

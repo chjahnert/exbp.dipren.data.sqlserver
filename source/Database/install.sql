@@ -40,12 +40,12 @@ CREATE TABLE [dipren].[partitions]
   [remaining] BIGINT NOT NULL,
   [throughput] DOUBLE PRECISION NOT NULL,
   [is_completed] BIT NOT NULL,
-  [is_split_requested] BIT NOT NULL,
+  [split_requester] VARCHAR(256) NULL,
 
   CONSTRAINT [pk_partitions] PRIMARY KEY ([id]),
   CONSTRAINT [fk_partitions_to_job] FOREIGN KEY ([job_id]) REFERENCES [dipren].[jobs]([id]) ON UPDATE NO ACTION ON DELETE CASCADE
 );
 GO
 
-CREATE INDEX [ix_partitions_by_job_id] ON [dipren].[partitions] ([job_id]);
+CREATE INDEX [ix_partitions_by_job_id] ON [dipren].[partitions] ([job_id]) INCLUDE ([split_requester]);
 GO

@@ -161,7 +161,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  [remaining],
         ///  [throughput],
         ///  [is_completed],
-        ///  [is_split_requested]
+        ///  [split_requester]
         ///)
         ///VALUES
         ///(
@@ -178,12 +178,24 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  @remaining,
         ///  @throughput,
         ///  @is_completed,
-        ///  @is_split_requested
+        ///  @split_requester
         ///);.
         /// </summary>
         internal static string QueryInsertPartition {
             get {
                 return ResourceManager.GetString("QueryInsertPartition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+        ///
+        ///SELECT
+        ///  COALESCE((SELECT TOP (1) 1 FROM [dipren].[partitions] WHERE ([job_id] = @job_id) AND ([split_requester] = @requester)), 0) AS [requests_exist];.
+        /// </summary>
+        internal static string QueryIsSplitRequestPending {
+            get {
+                return ResourceManager.GetString("QueryIsSplitRequestPending", resourceCulture);
             }
         }
         
@@ -303,7 +315,8 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  [processed] = @processed,
         ///  [remaining] = @remaining,
         ///  [throughput] = @throughput,
-        ///  [is_completed] = @completed
+        ///  [is_completed] = @completed,
+        ///  [split_requester] = CASE WHEN @completed = 1 THEN NULL ELSE [split_requester] END
         ///OUTPUT
         ///  INSERTED.[id] AS [id],
         ///  INSERTED.[job_id] AS [job_id],
@@ -311,9 +324,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  INSERTED.[updated] AS [updated],
         ///  INSERTED.[owner] AS [owner],
         ///  INSERTED.[first] AS [first],
-        ///  INSERTED.[last] AS [last],
-        ///  INSERTED.[is_inclusive] AS [is_inclusive],
-        ///  INSERTED.[position]  [rest of string was truncated]&quot;;.
+        ///  INSERTED.[ [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryReportProgress {
             get {
@@ -382,7 +393,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  [remaining] AS [remaining],
         ///  [throughput] AS [throughput],
         ///  [is_completed] AS [is_completed],
-        ///  [is_split_requested] AS [is_split_requested]
+        ///  [split_requester] AS [split_requester]
         ///FROM
         ///  [dipren].[partitions]
         ///WHERE
@@ -437,7 +448,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    ([owner] IS NOT NULL) AND
         ///    ([updated] &gt;= @active) AND
         ///    ([is_completed] = 0) AND
-        ///    ([is_split_requested] = 0)
+        ///    ([split_requester] IS NULL)
         ///  ORDER BY
         ///    [remaining] DESC
         ///),
@@ -449,7 +460,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    [candidates] AS t1
         ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
         ///  WHERE
-        ///    (t2.[job_id] = @job_id) [rest of string was truncated]&quot;;.
+        ///    (t2.[job_id] = @job_id [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
@@ -468,7 +479,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  [processed] = @processed,
         ///  [remaining] = @remaining,
         ///  [throughput] = @throughput,
-        ///  [is_split_requested] = @is_split_requested
+        ///  [split_requester] = @split_requester
         ///WHERE
         ///  ([id] = @partition_id) AND
         ///  ([owner] = @owner);.
