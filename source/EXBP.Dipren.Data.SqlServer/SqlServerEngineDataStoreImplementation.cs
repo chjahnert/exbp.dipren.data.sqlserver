@@ -1037,14 +1037,11 @@ namespace EXBP.Dipren.Data.SqlServer
 
             await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
             {
-                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
-
                 await using SqlCommand command = new SqlCommand
                 {
                     CommandText = SqlServerEngineDataStoreImplementationResources.QueryTryAcquirePartition,
                     CommandType = CommandType.Text,
-                    Connection = connection,
-                    Transaction = transaction
+                    Connection = connection
                 };
 
                 SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
@@ -1061,6 +1058,15 @@ namespace EXBP.Dipren.Data.SqlServer
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
+                    bool exists = await reader.ReadAsync();
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    await reader.NextResultAsync(cancellation);
+
                     bool found = await reader.ReadAsync(cancellation);
 
                     if (found == true)
@@ -1068,18 +1074,6 @@ namespace EXBP.Dipren.Data.SqlServer
                         result = this.ReadPartition(reader);
                     }
                 }
-
-                if (result == null)
-                {
-                    bool exists = await this.DoesJobExistAsync(transaction, jobId, cancellation);
-
-                    if (exists == false)
-                    {
-                        this.RaiseErrorUnknownJobIdentifier();
-                    }
-                }
-
-                transaction.Commit();
             }
 
             return result;
