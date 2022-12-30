@@ -87,20 +87,6 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///   Looks up a localized string similar to SELECT
         ///  COUNT(1) AS [count]
         ///FROM
-        ///  [dipren].[jobs]
-        ///WHERE
-        ///  ([id] = @id);.
-        /// </summary>
-        internal static string QueryDoesJobExist {
-            get {
-                return ResourceManager.GetString("QueryDoesJobExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SELECT
-        ///  COUNT(1) AS [count]
-        ///FROM
         ///  [dipren].[partitions]
         ///WHERE
         ///  ([id] = @id);.

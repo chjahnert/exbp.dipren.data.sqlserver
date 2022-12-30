@@ -128,14 +128,6 @@
 FROM
   [dipren].[jobs];</value>
   </data>
-  <data name="QueryDoesJobExist" xml:space="preserve">
-    <value>SELECT
-  COUNT(1) AS [count]
-FROM
-  [dipren].[jobs]
-WHERE
-  ([id] = @id);</value>
-  </data>
   <data name="QueryDoesPartitionExist" xml:space="preserve">
     <value>SELECT
   COUNT(1) AS [count]

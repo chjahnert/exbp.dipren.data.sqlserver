@@ -737,44 +737,6 @@ namespace EXBP.Dipren.Data.SqlServer
         }
 
         /// <summary>
-        ///   Determines if a job with the specified unique identifier exists.
-        /// </summary>
-        /// <param name="transaction">
-        ///   The transaction to participate in.
-        /// </param>
-        /// <param name="id">
-        ///   The unique identifier of the job to check.
-        /// </param>
-        /// <param name="cancellation">
-        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
-        ///   canceled.
-        /// </param>
-        /// <returns>
-        ///   A <see cref="Task{TResult}"/> of <see cref="bool"/> object that represents the asynchronous
-        ///   operation.
-        /// </returns>
-        private async Task<bool> DoesJobExistAsync(SqlTransaction transaction, string id, CancellationToken cancellation)
-        {
-            Debug.Assert(id != null);
-
-            await using SqlCommand command = new SqlCommand
-            {
-                CommandText = SqlServerEngineDataStoreImplementationResources.QueryDoesJobExist,
-                CommandType = CommandType.Text,
-                Connection = transaction.Connection,
-                Transaction = transaction
-            };
-
-            SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
-
-            paramId.Value = id;
-
-            int count = (int) await command.ExecuteScalarAsync(cancellation);
-
-            return (count > 0);
-        }
-
-        /// <summary>
         ///   Determines if a partition with the specified unique identifier exists.
         /// </summary>
         /// <param name="transaction">
