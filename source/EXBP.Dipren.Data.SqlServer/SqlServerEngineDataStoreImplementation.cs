@@ -1116,14 +1116,11 @@ namespace EXBP.Dipren.Data.SqlServer
 
             await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
             {
-                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
-
                 await using SqlCommand command = new SqlCommand
                 {
                     CommandText = SqlServerEngineDataStoreImplementationResources.QueryTryRequestSplit,
                     CommandType = CommandType.Text,
-                    Connection = connection,
-                    Transaction = transaction
+                    Connection = connection
                 };
 
                 SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
@@ -1136,19 +1133,21 @@ namespace EXBP.Dipren.Data.SqlServer
                 paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
                 paramCandidates.Value = MAXIMUM_CANDIDATES;
 
-                int affected = await command.ExecuteNonQueryAsync(cancellation);
+                int affected = -1;
 
-                if (affected == 0)
+                await using (SqlDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
-                    bool exists = await this.DoesJobExistAsync(transaction, jobId, cancellation);
+                    bool exists = await reader.ReadAsync(cancellation);
 
                     if (exists == false)
                     {
                         this.RaiseErrorUnknownJobIdentifier();
                     }
-                }
 
-                transaction.Commit();
+                    await reader.NextResultAsync(cancellation);
+
+                    affected = reader.RecordsAffected;
+                }
 
                 result = (affected > 0);
             }

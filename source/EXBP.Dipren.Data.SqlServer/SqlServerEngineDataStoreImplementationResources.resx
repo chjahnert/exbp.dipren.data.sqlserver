@@ -497,7 +497,18 @@ WHERE
 COMMIT TRANSACTION;</value>
   </data>
   <data name="QueryTryRequestSplit" xml:space="preserve">
-    <value>WITH [candidates] AS
+    <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+BEGIN TRANSACTION;
+
+SELECT
+  1
+FROM
+  [dipren].[jobs]
+WHERE
+  ([id] = @job_id);
+
+WITH [candidates] AS
 (
   SELECT TOP (@candidates)
     [id]
@@ -535,7 +546,9 @@ SET
 FROM
   [candidate]
 WHERE
-  ([dipren].[partitions].[id] = [candidate].[id]);</value>
+  ([dipren].[partitions].[id] = [candidate].[id]);
+
+COMMIT TRANSACTION;</value>
   </data>
   <data name="QueryUpdateSplitPartition" xml:space="preserve">
     <value>UPDATE

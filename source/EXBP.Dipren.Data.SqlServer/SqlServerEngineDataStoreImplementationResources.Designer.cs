@@ -445,7 +445,18 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH [candidates] AS
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+        ///
+        ///BEGIN TRANSACTION;
+        ///
+        ///SELECT
+        ///  1
+        ///FROM
+        ///  [dipren].[jobs]
+        ///WHERE
+        ///  ([id] = @job_id);
+        ///
+        ///WITH [candidates] AS
         ///(
         ///  SELECT TOP (@candidates)
         ///    [id]
@@ -465,10 +476,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  SELECT TOP 1
         ///    t2.[id]
         ///  FROM
-        ///    [candidates] AS t1
-        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
-        ///  WHERE
-        ///    (t2.[job_id] = @job_id [rest of string was truncated]&quot;;.
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
