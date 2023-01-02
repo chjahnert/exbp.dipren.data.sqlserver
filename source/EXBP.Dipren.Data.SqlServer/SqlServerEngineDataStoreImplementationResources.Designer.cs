@@ -61,7 +61,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+        ///
+        ///SELECT
         ///  (SELECT COUNT_BIG(1) FROM [dipren].[jobs] WHERE ([id] = @job_id)) AS [job_count],
         ///  (SELECT COUNT_BIG(1) FROM [dipren].[partitions] WHERE ([job_id] = @job_id) AND ([is_completed] = 0)) AS [partition_count];.
         /// </summary>
@@ -72,7 +74,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+        ///
+        ///SELECT
         ///  COUNT_BIG(1) AS [count]
         ///FROM
         ///  [dipren].[jobs];.
@@ -84,7 +88,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+        ///
+        ///SELECT
         ///  COUNT(1) AS [count]
         ///FROM
         ///  [dipren].[partitions]
@@ -319,7 +325,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+        ///
+        ///SELECT
         ///  [id] AS &quot;id&quot;,
         ///  [created] AS [created],
         ///  [updated] AS [updated],
@@ -365,7 +373,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT
+        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+        ///
+        ///SELECT
         ///  [id] AS [id],
         ///  [job_id] AS [job_id],
         ///  [created] AS [created],
@@ -383,7 +393,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///FROM
         ///  [dipren].[partitions]
         ///WHERE
-        ///  ([id] = @id);.
+        ///  ([id] = @i [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryRetrievePartitionById {
             get {
