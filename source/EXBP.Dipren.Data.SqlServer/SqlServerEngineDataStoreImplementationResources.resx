@@ -317,7 +317,14 @@ OUTPUT
   INSERTED.[split_requester] AS [split_requester]
 WHERE
   ([id] = @id) AND
-  ([owner] = @owner);</value>
+  ([owner] = @owner);
+
+SELECT
+  1
+FROM
+  [dipren].[partitions]
+WHERE
+ ([id] = @id);</value>
   </data>
   <data name="QueryRetrieveJobById" xml:space="preserve">
     <value>SELECT

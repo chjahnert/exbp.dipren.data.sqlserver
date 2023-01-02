@@ -679,14 +679,11 @@ namespace EXBP.Dipren.Data.SqlServer
 
             await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
             {
-                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
-
                 await using SqlCommand command = connection.CreateCommand();
 
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryReportProgress;
                 command.CommandType = CommandType.Text;
                 command.Connection = connection;
-                command.Transaction = transaction;
 
                 SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.UniqueIdentifier);
                 SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
@@ -714,23 +711,22 @@ namespace EXBP.Dipren.Data.SqlServer
                     {
                         result = this.ReadPartition(reader);
                     }
-                }
-
-                if (result == null)
-                {
-                    bool exists = await this.DoesPartitionExistAsync(transaction, id, cancellation);
-
-                    if (exists == false)
-                    {
-                        this.RaiseErrorUnknownJobIdentifier();
-                    }
                     else
                     {
-                        this.RaiseErrorLockNoLongerHeld();
+                        await reader.NextResultAsync(cancellation);
+
+                        bool exists = await reader.ReadAsync(cancellation);
+
+                        if (exists == false)
+                        {
+                            this.RaiseErrorUnknownPartitionIdentifier();
+                        }
+                        else
+                        {
+                            this.RaiseErrorLockNoLongerHeld();
+                        }
                     }
                 }
-
-                transaction.Commit();
             }
 
             return result;
