@@ -428,9 +428,8 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    t2.[id]
         ///  FROM
         ///    [#candidates] AS t1
-        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (HOLDLOCK) ON (t1.[id] = t2.[id])
-        ///  WHERE
-        ///    (t [rest of string was truncated]&quot;;.
+        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK, UPDLOCK) ON (t1.[id] = t2.[id])
+        ///  WHERE [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryAcquirePartition {
             get {
@@ -467,7 +466,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    t2.[id]
         ///  FROM
         ///    [#candidates] AS t1
-        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (HOLDLOCK) ON (t1.[id] = t [rest of string was truncated]&quot;;.
+        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK, UPDLOCK) ON (t1. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
