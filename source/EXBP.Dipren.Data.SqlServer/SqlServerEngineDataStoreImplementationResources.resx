@@ -325,12 +325,19 @@ WHERE
   ([id] = @id) AND
   ([owner] = @owner);
 
-SELECT
-  1
-FROM
-  [dipren].[partitions]
-WHERE
- ([id] = @id);</value>
+IF @@ROWCOUNT &gt; 0
+BEGIN
+  SELECT 1;
+END
+ELSE
+BEGIN
+  SELECT
+    1
+  FROM
+    [dipren].[partitions]
+  WHERE
+   ([id] = @id);
+END;</value>
   </data>
   <data name="QueryRetrieveJobById" xml:space="preserve">
     <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
