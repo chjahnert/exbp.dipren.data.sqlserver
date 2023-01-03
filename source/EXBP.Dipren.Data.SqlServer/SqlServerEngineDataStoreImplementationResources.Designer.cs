@@ -414,7 +414,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///INTO
         ///  [#candidates]
         ///FROM
-        ///  [dipren].[partitions] WITH (NOLOCK)
+        ///  [dipren].[partitions] WITH (READPAST)
         ///WHERE
         ///  ([job_id] = @job_id) AND
         ///  (([owner] IS NULL) OR ([updated] &lt; @active)) AND
@@ -422,14 +422,15 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///ORDER BY
         ///  [remaining] DESC;
         ///
-        ///WITH [candidate] AS
-        ///(
-        ///  SELECT TOP 1
-        ///    t2.[id]
-        ///  FROM
-        ///    [#candidates] AS t1
-        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK, UPDLOCK) ON (t1.[id] = t2.[id])
-        ///  WHERE [rest of string was truncated]&quot;;.
+        ///IF (@@ROWCOUNT &gt; 0)
+        ///BEGIN
+        ///  WITH [candidate] AS
+        ///  (
+        ///    SELECT TOP 1
+        ///      t2.[id]
+        ///    FROM
+        ///      [#candidates] AS t1
+        ///      INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLO [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryAcquirePartition {
             get {
@@ -450,7 +451,7 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///INTO
         ///  [#candidates]
         ///FROM
-        ///  [dipren].[partitions] WITH (NOLOCK)
+        ///  [dipren].[partitions] WITH (READPAST)
         ///WHERE
         ///  ([job_id] = @job_id) AND
         ///  ([owner] IS NOT NULL) AND
@@ -460,13 +461,15 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///ORDER BY
         ///  [remaining] DESC;
         ///
-        ///WITH [candidate] AS
-        ///(
-        ///  SELECT TOP 1
-        ///    t2.[id]
-        ///  FROM
-        ///    [#candidates] AS t1
-        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK, UPDLOCK) ON (t1. [rest of string was truncated]&quot;;.
+        ///IF (@@ROWCOUNT &gt; 0)
+        ///BEGIN
+        ///  WITH [candidate] AS
+        ///  (
+        ///    SELECT TOP 1
+        ///      t2.[id]
+        ///    FROM
+        ///      [#candidates] AS t1
+        ///      INNER JOIN [dipren].[parti [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
