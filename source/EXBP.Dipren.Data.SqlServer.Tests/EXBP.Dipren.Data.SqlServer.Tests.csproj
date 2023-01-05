@@ -29,6 +29,11 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Update="DatabaseResources.Designer.cs">
+      <DependentUpon>DatabaseResources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="SqlServerEngineDataStoreResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -37,6 +42,11 @@
   </ItemGroup>
   
   <ItemGroup>
+    <EmbeddedResource Update="DatabaseResources.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>DatabaseResources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="SqlServerEngineDataStoreResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SqlServerEngineDataStoreResources.Designer.cs</LastGenOutput>
