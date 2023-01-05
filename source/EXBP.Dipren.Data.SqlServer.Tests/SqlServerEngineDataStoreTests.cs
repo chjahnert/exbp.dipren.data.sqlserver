@@ -10,8 +10,6 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
 {
     internal class SqlServerEngineDataStoreTests : EngineDataStoreTests
     {
-        private const string CONNECTION_STRING_TEMPLATE = "Server = localhost; User Id = sa; Password = 4Laqzjn!LNYa@W63; TrustServerCertificate = True";
-
         private const string DATABASE_NAME_MASTER = "master";
         private const string DATABASE_NAME_DIPREN = "dipren";
 
@@ -21,8 +19,8 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
 
         public SqlServerEngineDataStoreTests()
         {
-            SqlConnectionStringBuilder builderMaster = new SqlConnectionStringBuilder(CONNECTION_STRING_TEMPLATE);
-            SqlConnectionStringBuilder builderDipren = new SqlConnectionStringBuilder(CONNECTION_STRING_TEMPLATE);
+            SqlConnectionStringBuilder builderMaster = new SqlConnectionStringBuilder(Database.ConnectionStringTemplate);
+            SqlConnectionStringBuilder builderDipren = new SqlConnectionStringBuilder(Database.ConnectionStringTemplate);
 
             builderMaster.InitialCatalog = DATABASE_NAME_MASTER;
             builderDipren.InitialCatalog = DATABASE_NAME_DIPREN;

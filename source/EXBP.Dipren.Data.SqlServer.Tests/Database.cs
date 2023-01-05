@@ -15,6 +15,9 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         private const string PATH_SCHEMA_SCRIPT_REMOVE = @"../../../../Database/remove.sql";
 
 
+        internal static string ConnectionStringTemplate => "Server = localhost; User Id = sa; Password = 4Laqzjn!LNYa@W63; TrustServerCertificate = True";
+
+
         internal static async Task CreateDatabaseAsync(string connectionString, string databaseName, CancellationToken cancellation = default)
         {
             string statementCreate = string.Format(CultureInfo.InvariantCulture, DatabaseResources.QueryCreateDatabase, databaseName);
