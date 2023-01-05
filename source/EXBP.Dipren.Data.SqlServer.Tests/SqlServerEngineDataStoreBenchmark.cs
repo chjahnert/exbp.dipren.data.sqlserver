@@ -129,6 +129,9 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
 
             EngineDataStoreBenchmarkResult result = await benchmark.RunAsync();
 
+            Assert.That(result.Missed, Is.Zero);
+            Warn.Unless(result.Errors, Is.Zero, "{0} errors were reported during processing.", result.Errors);
+
             return result;
         }
 
