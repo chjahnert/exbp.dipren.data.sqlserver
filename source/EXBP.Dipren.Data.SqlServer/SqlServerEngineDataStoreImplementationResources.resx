@@ -453,65 +453,44 @@ FROM
 WHERE
   ([id] = @job_id);
 
-SELECT TOP (@candidates)
-  [id]
-INTO
-  [#candidates]
-FROM
-  [dipren].[partitions] WITH (READPAST)
-WHERE
-  ([job_id] = @job_id) AND
-  (([owner] IS NULL) OR ([updated] &lt; @active)) AND
-  ([is_completed] = 0)
-ORDER BY
-  [remaining] DESC;
-
-IF (@@ROWCOUNT &gt; 0)
-BEGIN
-  WITH [candidate] AS
-  (
-    SELECT TOP 1
-      t2.[id]
-    FROM
-      [#candidates] AS t1
-      INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK, UPDLOCK, READPAST) ON (t1.[id] = t2.[id])
-    WHERE
-      (t2.[job_id] = @job_id) AND
-      ((t2.[owner] IS NULL) OR (t2.[updated] &lt; @active)) AND
-      (t2.[is_completed] = 0)
-    ORDER BY
-      NEWID() DESC
-  )
-  UPDATE
-    [dipren].[partitions]
-  SET
-    [updated] = @updated,
-    [owner] = @owner,
-    [acquired] = ([acquired] + 1)
-  OUTPUT
-    INSERTED.[id] AS [id],
-    INSERTED.[job_id] AS [job_id],
-    INSERTED.[created] AS [created],
-    INSERTED.[updated] AS [updated],
-    INSERTED.[owner] AS [owner],
-    INSERTED.[first] AS [first],
-    INSERTED.[last] AS [last],
-    INSERTED.[is_inclusive] AS [is_inclusive],
-    INSERTED.[position] AS [position],
-    INSERTED.[processed] AS [processed],
-    INSERTED.[remaining] AS [remaining],
-    INSERTED.[throughput] AS [throughput],
-    INSERTED.[is_completed] AS [is_completed],
-    INSERTED.[split_requester] AS [split_requester]
+WITH [candidate] AS
+(
+  SELECT TOP 1
+    [id]
   FROM
-    [candidate]
+    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
   WHERE
-    ([dipren].[partitions].[id] = [candidate].[id]);
-END
-ELSE
-BEGIN
-  SELECT TOP 0 * FROM [dipren].[partitions];
-END</value>
+    ([job_id] = @job_id) AND
+    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
+    ([is_completed] = 0)
+  ORDER BY
+    [remaining] DESC
+)
+UPDATE
+  [dipren].[partitions]
+SET
+  [updated] = @updated,
+  [owner] = @owner,
+  [acquired] = ([acquired] + 1)
+OUTPUT
+  INSERTED.[id] AS [id],
+  INSERTED.[job_id] AS [job_id],
+  INSERTED.[created] AS [created],
+  INSERTED.[updated] AS [updated],
+  INSERTED.[owner] AS [owner],
+  INSERTED.[first] AS [first],
+  INSERTED.[last] AS [last],
+  INSERTED.[is_inclusive] AS [is_inclusive],
+  INSERTED.[position] AS [position],
+  INSERTED.[processed] AS [processed],
+  INSERTED.[remaining] AS [remaining],
+  INSERTED.[throughput] AS [throughput],
+  INSERTED.[is_completed] AS [is_completed],
+  INSERTED.[split_requester] AS [split_requester]
+FROM
+  [candidate]
+WHERE
+  ([dipren].[partitions].[id] = [candidate].[id]);</value>
   </data>
   <data name="QueryTryRequestSplit" xml:space="preserve">
     <value>SELECT
@@ -521,48 +500,29 @@ FROM
 WHERE
   ([id] = @job_id);
 
-SELECT
-  [id]
-INTO
-  [#candidates]
-FROM
-  [dipren].[partitions] WITH (READPAST)
-WHERE
-  ([job_id] = @job_id) AND
-  ([owner] IS NOT NULL) AND
-  ([updated] &gt;= @active) AND
-  ([is_completed] = 0) AND
-  ([split_requester] IS NULL)
-ORDER BY
-  [remaining] DESC;
-
-IF (@@ROWCOUNT &gt; 0)
-BEGIN
-  WITH [candidate] AS
-  (
-    SELECT TOP 1
-      t2.[id]
-    FROM
-      [#candidates] AS t1
-      INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK, UPDLOCK, READPAST) ON (t1.[id] = t2.[id])
-    WHERE
-      (t2.[job_id] = @job_id) AND
-      (t2.[owner] IS NOT NULL) AND
-      (t2.[updated] &gt;= @active) AND
-      (t2.[is_completed] = 0) AND
-      (t2.[split_requester] IS NULL)
-    ORDER BY
-      NEWID() DESC
-  )
-  UPDATE
-    [dipren].[partitions]
-  SET
-    [split_requester] = @requester
+WITH [candidate] AS
+(
+  SELECT TOP 1
+    [id]
   FROM
-    [candidate]
+    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
   WHERE
-    ([dipren].[partitions].[id] = [candidate].[id]);
-END</value>
+    ([job_id] = @job_id) AND
+    ([owner] IS NOT NULL) AND
+    ([updated] &gt;= @active) AND
+    ([is_completed] = 0) AND
+    ([split_requester] IS NULL)
+  ORDER BY
+    [remaining] DESC
+)
+UPDATE
+  [dipren].[partitions]
+SET
+  [split_requester] = @requester
+FROM
+  [candidate]
+WHERE
+  ([dipren].[partitions].[id] = [candidate].[id]);</value>
   </data>
   <data name="QueryUpdateSplitPartition" xml:space="preserve">
     <value>UPDATE

@@ -19,8 +19,6 @@ namespace EXBP.Dipren.Data.SqlServer
     /// </remarks>
     internal class SqlServerEngineDataStoreImplementation : EngineDataStore, IEngineDataStore
     {
-        private const int MAXIMUM_CANDIDATES = 16;
-
         private const int SQL_ERROR_PRIMARY_KEY_VIOLATION = 2627;
         private const int SQL_ERROR_FOREIGN_KEY_VIOLATION = 547;
 
@@ -1006,13 +1004,11 @@ namespace EXBP.Dipren.Data.SqlServer
                 SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
                 SqlParameter paramUpdated = command.Parameters.Add("@updated", SqlDbType.DateTime2);
                 SqlParameter paramActive = command.Parameters.Add("@active", SqlDbType.DateTime2);
-                SqlParameter paramCandidates = command.Parameters.Add("@candidates", SqlDbType.Int);
 
                 paramJobId.Value = jobId;
                 paramOwner.Value = requester;
                 paramUpdated.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
                 paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
-                paramCandidates.Value = MAXIMUM_CANDIDATES;
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
@@ -1084,12 +1080,10 @@ namespace EXBP.Dipren.Data.SqlServer
                 SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
                 SqlParameter paramRequester = command.Parameters.Add("@requester", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
                 SqlParameter paramActive = command.Parameters.Add("@active", SqlDbType.DateTime2);
-                SqlParameter paramCandidates = command.Parameters.Add("@candidates", SqlDbType.Int);
 
                 paramJobId.Value = jobId;
                 paramRequester.Value = requester;
                 paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
-                paramCandidates.Value = MAXIMUM_CANDIDATES;
 
                 int affected = -1;
 

@@ -409,28 +409,28 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///WHERE
         ///  ([id] = @job_id);
         ///
-        ///SELECT TOP (@candidates)
-        ///  [id]
-        ///INTO
-        ///  [#candidates]
-        ///FROM
-        ///  [dipren].[partitions] WITH (READPAST)
-        ///WHERE
-        ///  ([job_id] = @job_id) AND
-        ///  (([owner] IS NULL) OR ([updated] &lt; @active)) AND
-        ///  ([is_completed] = 0)
-        ///ORDER BY
-        ///  [remaining] DESC;
-        ///
-        ///IF (@@ROWCOUNT &gt; 0)
-        ///BEGIN
-        ///  WITH [candidate] AS
-        ///  (
-        ///    SELECT TOP 1
-        ///      t2.[id]
-        ///    FROM
-        ///      [#candidates] AS t1
-        ///      INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLO [rest of string was truncated]&quot;;.
+        ///WITH [candidate] AS
+        ///(
+        ///  SELECT TOP 1
+        ///    [id]
+        ///  FROM
+        ///    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
+        ///  WHERE
+        ///    ([job_id] = @job_id) AND
+        ///    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
+        ///    ([is_completed] = 0)
+        ///  ORDER BY
+        ///    [remaining] DESC
+        ///)
+        ///UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [updated] = @updated,
+        ///  [owner] = @owner,
+        ///  [acquired] = ([acquired] + 1)
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  IN [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryAcquirePartition {
             get {
@@ -446,30 +446,29 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///WHERE
         ///  ([id] = @job_id);
         ///
-        ///SELECT
-        ///  [id]
-        ///INTO
-        ///  [#candidates]
+        ///WITH [candidate] AS
+        ///(
+        ///  SELECT TOP 1
+        ///    [id]
+        ///  FROM
+        ///    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
+        ///  WHERE
+        ///    ([job_id] = @job_id) AND
+        ///    ([owner] IS NOT NULL) AND
+        ///    ([updated] &gt;= @active) AND
+        ///    ([is_completed] = 0) AND
+        ///    ([split_requester] IS NULL)
+        ///  ORDER BY
+        ///    [remaining] DESC
+        ///)
+        ///UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [split_requester] = @requester
         ///FROM
-        ///  [dipren].[partitions] WITH (READPAST)
+        ///  [candidate]
         ///WHERE
-        ///  ([job_id] = @job_id) AND
-        ///  ([owner] IS NOT NULL) AND
-        ///  ([updated] &gt;= @active) AND
-        ///  ([is_completed] = 0) AND
-        ///  ([split_requester] IS NULL)
-        ///ORDER BY
-        ///  [remaining] DESC;
-        ///
-        ///IF (@@ROWCOUNT &gt; 0)
-        ///BEGIN
-        ///  WITH [candidate] AS
-        ///  (
-        ///    SELECT TOP 1
-        ///      t2.[id]
-        ///    FROM
-        ///      [#candidates] AS t1
-        ///      INNER JOIN [dipren].[parti [rest of string was truncated]&quot;;.
+        ///  ([dipre [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
