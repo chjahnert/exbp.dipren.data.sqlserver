@@ -68,7 +68,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         {
             EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Tiny);
 
-            TestContext.WriteLine($"{result.Duration}");
+            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
 
             string csv = await this.FormatSnapshotsAsync(result);
         }
@@ -80,7 +80,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         {
             EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Small);
 
-            TestContext.WriteLine($"{result.Duration}");
+            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
 
             string csv = await this.FormatSnapshotsAsync(result);
         }
@@ -92,7 +92,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         {
             EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Medium);
 
-            TestContext.WriteLine($"{result.Duration}");
+            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
 
             string csv = await this.FormatSnapshotsAsync(result);
         }
@@ -104,7 +104,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         {
             EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Large);
 
-            TestContext.WriteLine($"{result.Duration}");
+            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
 
             string csv = await this.FormatSnapshotsAsync(result);
         }
@@ -116,7 +116,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         {
             EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Huge);
 
-            TestContext.WriteLine($"{result.Duration}");
+            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
 
             string csv = await this.FormatSnapshotsAsync(result);
         }
