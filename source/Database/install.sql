@@ -29,16 +29,11 @@ CREATE TABLE [dipren].[partitions]
   [id] UNIQUEIDENTIFIER NOT NULL,
   [job_id] VARCHAR(256) NOT NULL,
   [created] DATETIME NOT NULL,
-  [updated] DATETIME NOT NULL,
   [owner] VARCHAR(256) NULL,
   [acquired] INTEGER NOT NULL DEFAULT (0),
   [first] TEXT NOT NULL,
   [last] TEXT NOT NULL,
   [is_inclusive] BIT NOT NULL,
-  [position] TEXT NULL,
-  [processed] BIGINT NOT NULL,
-  [remaining] BIGINT NOT NULL,
-  [throughput] DOUBLE PRECISION NOT NULL,
   [is_completed] BIT NOT NULL,
   [split_requester] VARCHAR(256) NULL,
 
@@ -48,4 +43,19 @@ CREATE TABLE [dipren].[partitions]
 GO
 
 CREATE INDEX [ix_partitions_by_job_id] ON [dipren].[partitions] ([job_id]) INCLUDE ([split_requester]);
+GO
+
+
+CREATE TABLE [dipren].[progress]
+(
+  [id] UNIQUEIDENTIFIER NOT NULL,
+  [updated] DATETIME NOT NULL,
+  [position] TEXT NULL,
+  [processed] BIGINT NOT NULL,
+  [remaining] BIGINT NOT NULL,
+  [throughput] DOUBLE PRECISION NOT NULL,
+
+  CONSTRAINT [pk_progress] PRIMARY KEY ([id]),
+  CONSTRAINT [fk_progress_to_partitions] FOREIGN KEY ([id]) REFERENCES [dipren].[partitions]([id]) ON UPDATE NO ACTION ON DELETE CASCADE
+);
 GO

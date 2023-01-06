@@ -362,7 +362,7 @@ namespace EXBP.Dipren.Data.SqlServer
 
                 int affected = await command.ExecuteNonQueryAsync(cancellation);
 
-                if (affected != 1)
+                if (affected != 2)
                 {
                     bool exists = await this.DoesPartitionExistAsync(transaction, partitionToUpdate.Id, cancellation);
 

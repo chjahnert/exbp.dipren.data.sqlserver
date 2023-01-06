@@ -171,20 +171,17 @@ VALUES
 );</value>
   </data>
   <data name="QueryInsertPartition" xml:space="preserve">
-    <value>INSERT INTO [dipren].[partitions]
+    <value>BEGIN TRANSACTION;
+
+INSERT INTO [dipren].[partitions]
 (
   [id],
   [job_id],
   [created],
-  [updated],
   [owner],
   [first],
   [last],
   [is_inclusive],
-  [position],
-  [processed],
-  [remaining],
-  [throughput],
   [is_completed],
   [split_requester]
 )
@@ -193,18 +190,34 @@ VALUES
   @id,
   @job_id,
   @created,
-  @updated,
   @owner,
   @first,
   @last,
   @is_inclusive,
+  @is_completed,
+  @split_requester
+);
+
+INSERT INTO [dipren].[progress]
+(
+  [id],
+  [updated],
+  [position],
+  [processed],
+  [remaining],
+  [throughput]
+)
+VALUES
+(
+  @id,
+  @updated,
   @position,
   @processed,
   @remaining,
-  @throughput,
-  @is_completed,
-  @split_requester
-);</value>
+  @throughput
+);
+
+COMMIT;</value>
   </data>
   <data name="QueryIsSplitRequestPending" xml:space="preserve">
     <value>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
@@ -296,48 +309,88 @@ WHERE
   ([id] = @id);</value>
   </data>
   <data name="QueryReportProgress" xml:space="preserve">
-    <value>UPDATE
-  [dipren].[partitions]
+    <value>BEGIN TRANSACTION;
+
+DECLARE @progress TABLE
+(
+  [id] UNIQUEIDENTIFIER,
+  [updated] DATETIME,
+  [position] TEXT NULL,
+  [processed] BIGINT,
+  [remaining] BIGINT,
+  [throughput] DOUBLE PRECISION
+);
+
+UPDATE
+  [dipren].[progress]
 SET
   [updated] = @updated,
   [position] = @position,
   [processed] = @processed,
   [remaining] = @remaining,
-  [throughput] = @throughput,
-  [is_completed] = @completed,
-  [split_requester] = CASE WHEN @completed = 1 THEN NULL ELSE [split_requester] END
+  [throughput] = @throughput
 OUTPUT
-  INSERTED.[id] AS [id],
-  INSERTED.[job_id] AS [job_id],
-  INSERTED.[created] AS [created],
-  INSERTED.[updated] AS [updated],
-  INSERTED.[owner] AS [owner],
-  INSERTED.[first] AS [first],
-  INSERTED.[last] AS [last],
-  INSERTED.[is_inclusive] AS [is_inclusive],
-  INSERTED.[position] AS [position],
-  INSERTED.[processed] AS [processed],
-  INSERTED.[remaining] AS [remaining],
-  INSERTED.[throughput] AS [throughput],
-  INSERTED.[is_completed] AS [is_completed],
-  INSERTED.[split_requester] AS [split_requester]
+  INSERTED.[id],
+  INSERTED.[updated],
+  INSERTED.[position],
+  INSERTED.[processed],
+  INSERTED.[remaining],
+  INSERTED.[throughput]
+INTO
+  @progress
+FROM
+  [dipren].[progress] AS [t1]
+  INNER JOIN [dipren].[partitions] AS [t2] ON ([t1].[id] = [t2].[id])
 WHERE
-  ([id] = @id) AND
-  ([owner] = @owner);
+  ([t1].[id] = @id) AND
+  ([t2].[owner] = @owner);
 
-IF @@ROWCOUNT &gt; 0
+IF (@completed = 1)
 BEGIN
-  SELECT 1;
+  UPDATE
+    [dipren].[partitions]
+  SET
+    [is_completed] = @completed,
+    [split_requester] = NULL
+  WHERE
+    ([id] = @id) AND
+    ([owner] = @owner);
 END
-ELSE
+
+SELECT
+  t1.[id] AS [id],
+  t1.[job_id] AS [job_id],
+  t1.[created] AS [created],
+  t2.[updated] AS [updated],
+  t1.[owner] AS [owner],
+  t1.[acquired] AS [acquired],
+  t1.[first] AS [first],
+  t1.[last] AS [last],
+  t1.[is_inclusive] AS [is_inclusive],
+  t2.[position] AS [position],
+  t2.[processed] AS [processed],
+  t2.[remaining] AS [remaining],
+  t2.[throughput] AS [throughput],
+  t1.[is_completed] AS [is_completed],
+  t1.[split_requester] AS [split_requester]
+FROM
+  [dipren].[partitions] AS [t1]
+  INNER JOIN @progress AS [t2] ON ([t1].[id] = [t2].[id])
+WHERE
+  ([t1].[id] = @id) AND
+  ([t1].[owner] = @owner);
+
+IF (@@ROWCOUNT = 0)
 BEGIN
   SELECT
     1
   FROM
     [dipren].[partitions]
   WHERE
-   ([id] = @id);
-END;</value>
+  ([id] = @id);
+END
+
+COMMIT;</value>
   </data>
   <data name="QueryRetrieveJobById" xml:space="preserve">
     <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
@@ -361,7 +414,29 @@ WHERE
   <data name="QueryRetrieveJobStatusReport" xml:space="preserve">
     <value>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-WITH "aggregates" AS
+WITH "partitions" AS
+(
+  SELECT
+    t1.[id] AS [id],
+    t1.[job_id] AS [job_id],
+    t1.[created] AS [created],
+    t2.[updated] AS [updated],
+    t1.[owner] AS [owner],
+    t1.[acquired] AS [acquired],
+    t1.[first] AS [first],
+    t1.[last] AS [last],
+    t1.[is_inclusive] AS [is_inclusive],
+    t2.[position] AS [position],
+    t2.[processed] AS [processed],
+    t2.[remaining] AS [remaining],
+    t2.[throughput] AS [throughput],
+    t1.[is_completed] AS [is_completed],
+    t1.[split_requester] AS [split_requester]
+  FROM
+    [dipren].[partitions] AS [t1]
+    INNER JOIN [dipren].[progress] AS [t2] ON ([t1].[id] = [t2].[id])
+),
+"aggregates" AS
 (
   SELECT
     t1.[id] AS [id],
@@ -384,7 +459,7 @@ WITH "aggregates" AS
     COALESCE(SUM(CASE WHEN ((t1.[state] = 'processing') AND (t2.[is_completed] = 0) AND (t2.[updated] &gt;= DATEADD(MICROSECOND, (-1 * CAST((t1.[timeout] + t1.[clock_drift]) AS DOUBLE PRECISION)), @timestamp))) THEN [throughput] END), 0.0) AS [current_throughput]
   FROM
     [dipren].[jobs] t1
-    LEFT JOIN [dipren].[partitions] t2 ON (t1.[id] = t2.[job_id])
+    LEFT JOIN [partitions] t2 ON (t1.[id] = t2.[job_id])
   WHERE
     (t1.[id] = @id)
   GROUP BY
@@ -423,77 +498,144 @@ FROM
   INNER JOIN [dipren].[jobs] AS t2 ON (t1.[id] = t2.[id]);</value>
   </data>
   <data name="QueryRetrievePartitionById" xml:space="preserve">
-    <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
-SELECT
-  [id] AS [id],
-  [job_id] AS [job_id],
-  [created] AS [created],
-  [updated] AS [updated],
-  [owner] AS [owner],
-  [first] AS [first],
-  [last] AS [last],
-  [is_inclusive] AS [is_inclusive],
-  [position] AS [position],
-  [processed] AS [processed],
-  [remaining] AS [remaining],
-  [throughput] AS [throughput],
-  [is_completed] AS [is_completed],
-  [split_requester] AS [split_requester]
+    <value>SELECT
+  t1.[id] AS [id],
+  t1.[job_id] AS [job_id],
+  t1.[created] AS [created],
+  t2.[updated] AS [updated],
+  t1.[owner] AS [owner],
+  t1.[first] AS [first],
+  t1.[last] AS [last],
+  t1.[is_inclusive] AS [is_inclusive],
+  t2.[position] AS [position],
+  t2.[processed] AS [processed],
+  t2.[remaining] AS [remaining],
+  t2.[throughput] AS [throughput],
+  t1.[is_completed] AS [is_completed],
+  t1.[split_requester] AS [split_requester]
 FROM
-  [dipren].[partitions]
+  [dipren].[partitions] AS [t1]
+  INNER JOIN [dipren].[progress] AS [t2] ON ([t1].[id] = [t2].[id])
 WHERE
-  ([id] = @id);</value>
+  (t1.[id] = @id);</value>
   </data>
   <data name="QueryTryAcquirePartition" xml:space="preserve">
-    <value>SELECT
+    <value>BEGIN TRANSACTION;
+
+SELECT
   1
 FROM
   [dipren].[jobs] WITH (NOLOCK)
 WHERE
   ([id] = @job_id);
 
-WITH [candidate] AS
+DECLARE @id UNIQUEIDENTIFIER =
 (
   SELECT TOP 1
-    [id]
+    t1.[id]
   FROM
-    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
+    [dipren].[partitions] AS t1 WITH (ROWLOCK, UPDLOCK, READPAST)
+    INNER JOIN [dipren].[progress] AS t2 WITH (NOLOCK) ON (t1.[id] = t2.[id])
   WHERE
-    ([job_id] = @job_id) AND
-    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
-    ([is_completed] = 0)
+    (t1.[job_id] = @job_id) AND
+    ((t1.[owner] IS NULL) OR (t2.[updated] &lt; @active)) AND
+    (t1.[is_completed] = 0)
   ORDER BY
-    [remaining] DESC
-)
-UPDATE
-  [dipren].[partitions]
-SET
-  [updated] = @updated,
-  [owner] = @owner,
-  [acquired] = ([acquired] + 1)
-OUTPUT
-  INSERTED.[id] AS [id],
-  INSERTED.[job_id] AS [job_id],
-  INSERTED.[created] AS [created],
-  INSERTED.[updated] AS [updated],
-  INSERTED.[owner] AS [owner],
-  INSERTED.[first] AS [first],
-  INSERTED.[last] AS [last],
-  INSERTED.[is_inclusive] AS [is_inclusive],
-  INSERTED.[position] AS [position],
-  INSERTED.[processed] AS [processed],
-  INSERTED.[remaining] AS [remaining],
-  INSERTED.[throughput] AS [throughput],
-  INSERTED.[is_completed] AS [is_completed],
-  INSERTED.[split_requester] AS [split_requester]
+    t2.[remaining] DESC
+);
+
+DECLARE @partition TABLE
+(
+  [id] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+  [job_id] VARCHAR(256) NOT NULL,
+  [created] DATETIME NOT NULL,
+  [owner] VARCHAR(256) NULL,
+  [acquired] INTEGER NOT NULL DEFAULT (0),
+  [first] TEXT NOT NULL,
+  [last] TEXT NOT NULL,
+  [is_inclusive] BIT NOT NULL,
+  [is_completed] BIT NOT NULL,
+  [split_requester] VARCHAR(256) NULL
+);
+
+DECLARE @progress TABLE
+(
+  [id] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+  [updated] DATETIME NOT NULL,
+  [position] TEXT NULL,
+  [processed] BIGINT NOT NULL,
+  [remaining] BIGINT NOT NULL,
+  [throughput] DOUBLE PRECISION NOT NULL
+);
+
+IF (@id IS NOT NULL)
+BEGIN
+
+  UPDATE
+    [dipren].[partitions]
+  SET
+    [owner] = @owner,
+    [acquired] = ([acquired] + 1)
+  OUTPUT
+    INSERTED.[id],
+    INSERTED.[job_id],
+    INSERTED.[created],
+    INSERTED.[owner],
+    INSERTED.[acquired],
+    INSERTED.[first],
+    INSERTED.[last],
+    INSERTED.[is_inclusive],
+    INSERTED.[is_completed],
+    INSERTED.[split_requester]
+  INTO
+    @partition
+  WHERE
+    ([id] = @id);
+
+  UPDATE
+    [dipren].[progress]
+  SET
+    [updated] = @updated
+  OUTPUT
+    INSERTED.[id],
+    INSERTED.[updated],
+    INSERTED.[position],
+    INSERTED.[processed],
+    INSERTED.[remaining],
+    INSERTED.[throughput]
+  INTO
+    @progress
+  WHERE
+    ([id] = @id);
+
+END;
+
+SELECT
+  t1.[id],
+  t1.[job_id],
+  t1.[created],
+  t2.[updated],
+  t1.[owner],
+  t1.[acquired],
+  t1.[first],
+  t1.[last],
+  t1.[is_inclusive],
+  t2.[position],
+  t2.[processed],
+  t2.[remaining],
+  t2.[throughput],
+  t1.[is_completed],
+  t1.[split_requester]
 FROM
-  [candidate]
-WHERE
-  ([dipren].[partitions].[id] = [candidate].[id]);</value>
+  @partition AS t1
+  INNER JOIN @progress AS t2 ON (t1.[id] = t2.[id]);
+
+COMMIT;</value>
   </data>
   <data name="QueryTryRequestSplit" xml:space="preserve">
-    <value>SELECT
+    <value>BEGIN TRANSACTION;
+
+SELECT
   1
 FROM
   [dipren].[jobs] WITH (NOLOCK)
@@ -503,17 +645,18 @@ WHERE
 WITH [candidate] AS
 (
   SELECT TOP 1
-    [id]
+    t1.[id]
   FROM
-    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
+    [dipren].[partitions] AS t1 WITH (ROWLOCK, UPDLOCK, READPAST)
+    INNER JOIN [dipren].[progress] AS t2 WITH (NOLOCK) ON (t1.[id] = t2.[id])
   WHERE
-    ([job_id] = @job_id) AND
-    ([owner] IS NOT NULL) AND
-    ([updated] &gt;= @active) AND
-    ([is_completed] = 0) AND
-    ([split_requester] IS NULL)
+    (t1.[job_id] = @job_id) AND
+    (t1.[owner] IS NOT NULL) AND
+    (t2.[updated] &gt;= @active) AND
+    (t1.[is_completed] = 0) AND
+    (t1.[split_requester] IS NULL)
   ORDER BY
-    [remaining] DESC
+    t2.[remaining] DESC
 )
 UPDATE
   [dipren].[partitions]
@@ -522,22 +665,38 @@ SET
 FROM
   [candidate]
 WHERE
-  ([dipren].[partitions].[id] = [candidate].[id]);</value>
+  ([dipren].[partitions].[id] = [candidate].[id]);
+
+COMMIT;</value>
   </data>
   <data name="QueryUpdateSplitPartition" xml:space="preserve">
-    <value>UPDATE
+    <value>BEGIN TRANSACTION;
+
+UPDATE
   [dipren].[partitions]
 SET
-  [updated] = @updated,
   [last] = @last,
   [is_inclusive] = @is_inclusive,
-  [position] = @position,
-  [processed] = @processed,
-  [remaining] = @remaining,
-  [throughput] = @throughput,
   [split_requester] = @split_requester
 WHERE
   ([id] = @partition_id) AND
-  ([owner] = @owner);</value>
+  ([owner] = @owner);
+
+UPDATE
+  [dipren].[progress]
+SET
+  [updated] = @updated,
+  [position] = @position,
+  [processed] = @processed,
+  [remaining] = @remaining,
+  [throughput] = @throughput
+FROM
+  [dipren].[progress] AS t1
+  INNER JOIN [dipren].[partitions] AS t2 ON (t1.[id] = t2.[id])
+WHERE
+  (t1.[id] = @partition_id) AND
+  (t2.[owner] = @owner);
+
+COMMIT;</value>
   </data>
 </root>

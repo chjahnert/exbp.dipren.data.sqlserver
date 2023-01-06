@@ -138,20 +138,17 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to INSERT INTO [dipren].[partitions]
+        ///   Looks up a localized string similar to BEGIN TRANSACTION;
+        ///
+        ///INSERT INTO [dipren].[partitions]
         ///(
         ///  [id],
         ///  [job_id],
         ///  [created],
-        ///  [updated],
         ///  [owner],
         ///  [first],
         ///  [last],
         ///  [is_inclusive],
-        ///  [position],
-        ///  [processed],
-        ///  [remaining],
-        ///  [throughput],
         ///  [is_completed],
         ///  [split_requester]
         ///)
@@ -160,18 +157,29 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///  @id,
         ///  @job_id,
         ///  @created,
-        ///  @updated,
         ///  @owner,
         ///  @first,
         ///  @last,
         ///  @is_inclusive,
-        ///  @position,
-        ///  @processed,
-        ///  @remaining,
-        ///  @throughput,
         ///  @is_completed,
         ///  @split_requester
-        ///);.
+        ///);
+        ///
+        ///INSERT INTO [dipren].[progress]
+        ///(
+        ///  [id],
+        ///  [updated],
+        ///  [position],
+        ///  [processed],
+        ///  [remaining],
+        ///  [throughput]
+        ///)
+        ///VALUES
+        ///(
+        ///  @id,
+        ///  @updated,
+        ///  @position,
+        ///  @process [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryInsertPartition {
             get {
@@ -299,24 +307,33 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UPDATE
-        ///  [dipren].[partitions]
+        ///   Looks up a localized string similar to BEGIN TRANSACTION;
+        ///
+        ///DECLARE @progress TABLE
+        ///(
+        ///  [id] UNIQUEIDENTIFIER,
+        ///  [updated] DATETIME,
+        ///  [position] TEXT NULL,
+        ///  [processed] BIGINT,
+        ///  [remaining] BIGINT,
+        ///  [throughput] DOUBLE PRECISION
+        ///);
+        ///
+        ///UPDATE
+        ///  [dipren].[progress]
         ///SET
         ///  [updated] = @updated,
         ///  [position] = @position,
         ///  [processed] = @processed,
         ///  [remaining] = @remaining,
-        ///  [throughput] = @throughput,
-        ///  [is_completed] = @completed,
-        ///  [split_requester] = CASE WHEN @completed = 1 THEN NULL ELSE [split_requester] END
+        ///  [throughput] = @throughput
         ///OUTPUT
-        ///  INSERTED.[id] AS [id],
-        ///  INSERTED.[job_id] AS [job_id],
-        ///  INSERTED.[created] AS [created],
-        ///  INSERTED.[updated] AS [updated],
-        ///  INSERTED.[owner] AS [owner],
-        ///  INSERTED.[first] AS [first],
-        ///  INSERTED.[ [rest of string was truncated]&quot;;.
+        ///  INSERTED.[id],
+        ///  INSERTED.[updated],
+        ///  INSERTED.[position],
+        ///  INSERTED.[processed],
+        ///  INSERTED.[remaining],
+        ///  IN [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryReportProgress {
             get {
@@ -352,19 +369,23 @@ namespace EXBP.Dipren.Data.SqlServer {
         /// <summary>
         ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
         ///
-        ///WITH &quot;aggregates&quot; AS
+        ///WITH &quot;partitions&quot; AS
         ///(
         ///  SELECT
         ///    t1.[id] AS [id],
+        ///    t1.[job_id] AS [job_id],
         ///    t1.[created] AS [created],
-        ///    t1.[updated] AS [updated],
-        ///    t1.[batch_size] AS [batch_size],
-        ///    t1.[timeout] AS [timeout],
-        ///    t1.[clock_drift] AS [clock_drift],
-        ///    t1.[started] AS [started],
-        ///    t1.[completed] AS [completed],
-        ///    t1.[state] AS [state],
-        ///    COUNT_BIG(CASE WHEN ((t2.[is_completed] = 0) AND (t2.[owner] IS NULL) AND (t2.[processed] = 0)) THEN 1 END) AS [partitons_untouc [rest of string was truncated]&quot;;.
+        ///    t2.[updated] AS [updated],
+        ///    t1.[owner] AS [owner],
+        ///    t1.[acquired] AS [acquired],
+        ///    t1.[first] AS [first],
+        ///    t1.[last] AS [last],
+        ///    t1.[is_inclusive] AS [is_inclusive],
+        ///    t2.[position] AS [position],
+        ///    t2.[processed] AS [processed],
+        ///    t2.[remaining] AS [remaining],
+        ///    t2.[throughput] AS [throughput],
+        ///    t1 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryRetrieveJobStatusReport {
             get {
@@ -373,27 +394,24 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-        ///
-        ///SELECT
-        ///  [id] AS [id],
-        ///  [job_id] AS [job_id],
-        ///  [created] AS [created],
-        ///  [updated] AS [updated],
-        ///  [owner] AS [owner],
-        ///  [first] AS [first],
-        ///  [last] AS [last],
-        ///  [is_inclusive] AS [is_inclusive],
-        ///  [position] AS [position],
-        ///  [processed] AS [processed],
-        ///  [remaining] AS [remaining],
-        ///  [throughput] AS [throughput],
-        ///  [is_completed] AS [is_completed],
-        ///  [split_requester] AS [split_requester]
+        ///   Looks up a localized string similar to SELECT
+        ///  t1.[id] AS [id],
+        ///  t1.[job_id] AS [job_id],
+        ///  t1.[created] AS [created],
+        ///  t2.[updated] AS [updated],
+        ///  t1.[owner] AS [owner],
+        ///  t1.[first] AS [first],
+        ///  t1.[last] AS [last],
+        ///  t1.[is_inclusive] AS [is_inclusive],
+        ///  t2.[position] AS [position],
+        ///  t2.[processed] AS [processed],
+        ///  t2.[remaining] AS [remaining],
+        ///  t2.[throughput] AS [throughput],
+        ///  t1.[is_completed] AS [is_completed],
+        ///  t1.[split_requester] AS [split_requester]
         ///FROM
-        ///  [dipren].[partitions]
-        ///WHERE
-        ///  ([id] = @i [rest of string was truncated]&quot;;.
+        ///  [dipren].[partitions] AS [t1]
+        ///  INNER JOIN [dipren [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryRetrievePartitionById {
             get {
@@ -402,35 +420,31 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT
+        ///   Looks up a localized string similar to BEGIN TRANSACTION;
+        ///
+        ///SELECT
         ///  1
         ///FROM
         ///  [dipren].[jobs] WITH (NOLOCK)
         ///WHERE
         ///  ([id] = @job_id);
         ///
-        ///WITH [candidate] AS
+        ///DECLARE @id UNIQUEIDENTIFIER =
         ///(
         ///  SELECT TOP 1
-        ///    [id]
+        ///    t1.[id]
         ///  FROM
-        ///    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
+        ///    [dipren].[partitions] AS t1 WITH (ROWLOCK, UPDLOCK, READPAST)
+        ///    INNER JOIN [dipren].[progress] AS t2 WITH (NOLOCK) ON (t1.[id] = t2.[id])
         ///  WHERE
-        ///    ([job_id] = @job_id) AND
-        ///    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
-        ///    ([is_completed] = 0)
+        ///    (t1.[job_id] = @job_id) AND
+        ///    ((t1.[owner] IS NULL) OR (t2.[updated] &lt; @active)) AND
+        ///    (t1.[is_completed] = 0)
         ///  ORDER BY
-        ///    [remaining] DESC
-        ///)
-        ///UPDATE
-        ///  [dipren].[partitions]
-        ///SET
-        ///  [updated] = @updated,
-        ///  [owner] = @owner,
-        ///  [acquired] = ([acquired] + 1)
-        ///OUTPUT
-        ///  INSERTED.[id] AS [id],
-        ///  IN [rest of string was truncated]&quot;;.
+        ///    t2.[remaining] DESC
+        ///);
+        ///
+        ///DECLARE @partiti [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryAcquirePartition {
             get {
@@ -439,7 +453,9 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT
+        ///   Looks up a localized string similar to BEGIN TRANSACTION;
+        ///
+        ///SELECT
         ///  1
         ///FROM
         ///  [dipren].[jobs] WITH (NOLOCK)
@@ -449,26 +465,18 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///WITH [candidate] AS
         ///(
         ///  SELECT TOP 1
-        ///    [id]
+        ///    t1.[id]
         ///  FROM
-        ///    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
+        ///    [dipren].[partitions] AS t1 WITH (ROWLOCK, UPDLOCK, READPAST)
+        ///    INNER JOIN [dipren].[progress] AS t2 WITH (NOLOCK) ON (t1.[id] = t2.[id])
         ///  WHERE
-        ///    ([job_id] = @job_id) AND
-        ///    ([owner] IS NOT NULL) AND
-        ///    ([updated] &gt;= @active) AND
-        ///    ([is_completed] = 0) AND
-        ///    ([split_requester] IS NULL)
+        ///    (t1.[job_id] = @job_id) AND
+        ///    (t1.[owner] IS NOT NULL) AND
+        ///    (t2.[updated] &gt;= @active) AND
+        ///    (t1.[is_completed] = 0) AND
+        ///    (t1.[split_requester] IS NULL)
         ///  ORDER BY
-        ///    [remaining] DESC
-        ///)
-        ///UPDATE
-        ///  [dipren].[partitions]
-        ///SET
-        ///  [split_requester] = @requester
-        ///FROM
-        ///  [candidate]
-        ///WHERE
-        ///  ([dipre [rest of string was truncated]&quot;;.
+        ///    t2.[r [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
@@ -477,20 +485,31 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UPDATE
+        ///   Looks up a localized string similar to BEGIN TRANSACTION;
+        ///
+        ///UPDATE
         ///  [dipren].[partitions]
         ///SET
-        ///  [updated] = @updated,
         ///  [last] = @last,
         ///  [is_inclusive] = @is_inclusive,
-        ///  [position] = @position,
-        ///  [processed] = @processed,
-        ///  [remaining] = @remaining,
-        ///  [throughput] = @throughput,
         ///  [split_requester] = @split_requester
         ///WHERE
         ///  ([id] = @partition_id) AND
-        ///  ([owner] = @owner);.
+        ///  ([owner] = @owner);
+        ///
+        ///UPDATE
+        ///  [dipren].[progress]
+        ///SET
+        ///  [updated] = @updated,
+        ///  [position] = @position,
+        ///  [processed] = @processed,
+        ///  [remaining] = @remaining,
+        ///  [throughput] = @throughput
+        ///FROM
+        ///  [dipren].[progress] AS t1
+        ///  INNER JOIN [dipren].[partitions] AS t2 ON (t1.[id] = t2.[id])
+        ///WHERE
+        ///  (t1.[id] =  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryUpdateSplitPartition {
             get {
