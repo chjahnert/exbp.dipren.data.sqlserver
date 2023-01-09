@@ -19,8 +19,6 @@ namespace EXBP.Dipren.Data.SqlServer
     /// </remarks>
     internal class SqlServerEngineDataStoreImplementation : EngineDataStore, IEngineDataStore
     {
-        private const int MAXIMUM_CANDIDATES = 16;
-
         private const int SQL_ERROR_PRIMARY_KEY_VIOLATION = 2627;
         private const int SQL_ERROR_FOREIGN_KEY_VIOLATION = 547;
 
@@ -679,14 +677,11 @@ namespace EXBP.Dipren.Data.SqlServer
 
             await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
             {
-                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
-
                 await using SqlCommand command = connection.CreateCommand();
 
                 command.CommandText = SqlServerEngineDataStoreImplementationResources.QueryReportProgress;
                 command.CommandType = CommandType.Text;
                 command.Connection = connection;
-                command.Transaction = transaction;
 
                 SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.UniqueIdentifier);
                 SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
@@ -714,64 +709,25 @@ namespace EXBP.Dipren.Data.SqlServer
                     {
                         result = this.ReadPartition(reader);
                     }
-                }
-
-                if (result == null)
-                {
-                    bool exists = await this.DoesPartitionExistAsync(transaction, id, cancellation);
-
-                    if (exists == false)
-                    {
-                        this.RaiseErrorUnknownJobIdentifier();
-                    }
                     else
                     {
-                        this.RaiseErrorLockNoLongerHeld();
+                        await reader.NextResultAsync(cancellation);
+
+                        bool exists = await reader.ReadAsync(cancellation);
+
+                        if (exists == false)
+                        {
+                            this.RaiseErrorUnknownPartitionIdentifier();
+                        }
+                        else
+                        {
+                            this.RaiseErrorLockNoLongerHeld();
+                        }
                     }
                 }
-
-                transaction.Commit();
             }
 
             return result;
-        }
-
-        /// <summary>
-        ///   Determines if a job with the specified unique identifier exists.
-        /// </summary>
-        /// <param name="transaction">
-        ///   The transaction to participate in.
-        /// </param>
-        /// <param name="id">
-        ///   The unique identifier of the job to check.
-        /// </param>
-        /// <param name="cancellation">
-        ///   The <see cref="CancellationToken"/> used to propagate notifications that the operation should be
-        ///   canceled.
-        /// </param>
-        /// <returns>
-        ///   A <see cref="Task{TResult}"/> of <see cref="bool"/> object that represents the asynchronous
-        ///   operation.
-        /// </returns>
-        private async Task<bool> DoesJobExistAsync(SqlTransaction transaction, string id, CancellationToken cancellation)
-        {
-            Debug.Assert(id != null);
-
-            await using SqlCommand command = new SqlCommand
-            {
-                CommandText = SqlServerEngineDataStoreImplementationResources.QueryDoesJobExist,
-                CommandType = CommandType.Text,
-                Connection = transaction.Connection,
-                Transaction = transaction
-            };
-
-            SqlParameter paramId = command.Parameters.Add("@id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
-
-            paramId.Value = id;
-
-            int count = (int) await command.ExecuteScalarAsync(cancellation);
-
-            return (count > 0);
         }
 
         /// <summary>
@@ -1037,30 +993,34 @@ namespace EXBP.Dipren.Data.SqlServer
 
             await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
             {
-                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
-
                 await using SqlCommand command = new SqlCommand
                 {
                     CommandText = SqlServerEngineDataStoreImplementationResources.QueryTryAcquirePartition,
                     CommandType = CommandType.Text,
-                    Connection = connection,
-                    Transaction = transaction
+                    Connection = connection
                 };
 
                 SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
                 SqlParameter paramOwner = command.Parameters.Add("@owner", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
                 SqlParameter paramUpdated = command.Parameters.Add("@updated", SqlDbType.DateTime2);
                 SqlParameter paramActive = command.Parameters.Add("@active", SqlDbType.DateTime2);
-                SqlParameter paramCandidates = command.Parameters.Add("@candidates", SqlDbType.Int);
 
                 paramJobId.Value = jobId;
                 paramOwner.Value = requester;
                 paramUpdated.Value = DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified);
                 paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
-                paramCandidates.Value = MAXIMUM_CANDIDATES;
 
                 await using (DbDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
+                    bool exists = await reader.ReadAsync();
+
+                    if (exists == false)
+                    {
+                        this.RaiseErrorUnknownJobIdentifier();
+                    }
+
+                    await reader.NextResultAsync(cancellation);
+
                     bool found = await reader.ReadAsync(cancellation);
 
                     if (found == true)
@@ -1068,18 +1028,6 @@ namespace EXBP.Dipren.Data.SqlServer
                         result = this.ReadPartition(reader);
                     }
                 }
-
-                if (result == null)
-                {
-                    bool exists = await this.DoesJobExistAsync(transaction, jobId, cancellation);
-
-                    if (exists == false)
-                    {
-                        this.RaiseErrorUnknownJobIdentifier();
-                    }
-                }
-
-                transaction.Commit();
             }
 
             return result;
@@ -1122,39 +1070,36 @@ namespace EXBP.Dipren.Data.SqlServer
 
             await using (SqlConnection connection = await this.OpenConnectionAsync(cancellation))
             {
-                await using SqlTransaction transaction = (SqlTransaction) await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellation);
-
                 await using SqlCommand command = new SqlCommand
                 {
                     CommandText = SqlServerEngineDataStoreImplementationResources.QueryTryRequestSplit,
                     CommandType = CommandType.Text,
-                    Connection = connection,
-                    Transaction = transaction
+                    Connection = connection
                 };
 
                 SqlParameter paramJobId = command.Parameters.Add("@job_id", SqlDbType.VarChar, COLUMN_JOB_NAME_LENGTH);
                 SqlParameter paramRequester = command.Parameters.Add("@requester", SqlDbType.VarChar, COLUMN_PARTITION_OWNER_LENGTH);
                 SqlParameter paramActive = command.Parameters.Add("@active", SqlDbType.DateTime2);
-                SqlParameter paramCandidates = command.Parameters.Add("@candidates", SqlDbType.Int);
 
                 paramJobId.Value = jobId;
                 paramRequester.Value = requester;
                 paramActive.Value = DateTime.SpecifyKind(active, DateTimeKind.Unspecified);
-                paramCandidates.Value = MAXIMUM_CANDIDATES;
 
-                int affected = await command.ExecuteNonQueryAsync(cancellation);
+                int affected = -1;
 
-                if (affected == 0)
+                await using (SqlDataReader reader = await command.ExecuteReaderAsync(cancellation))
                 {
-                    bool exists = await this.DoesJobExistAsync(transaction, jobId, cancellation);
+                    bool exists = await reader.ReadAsync(cancellation);
 
                     if (exists == false)
                     {
                         this.RaiseErrorUnknownJobIdentifier();
                     }
-                }
 
-                transaction.Commit();
+                    await reader.NextResultAsync(cancellation);
+
+                    affected = reader.RecordsAffected;
+                }
 
                 result = (affected > 0);
             }

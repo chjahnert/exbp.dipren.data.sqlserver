@@ -128,14 +128,6 @@
 FROM
   [dipren].[jobs];</value>
   </data>
-  <data name="QueryDoesJobExist" xml:space="preserve">
-    <value>SELECT
-  COUNT(1) AS [count]
-FROM
-  [dipren].[jobs]
-WHERE
-  ([id] = @id);</value>
-  </data>
   <data name="QueryDoesPartitionExist" xml:space="preserve">
     <value>SELECT
   COUNT(1) AS [count]
@@ -325,7 +317,21 @@ OUTPUT
   INSERTED.[split_requester] AS [split_requester]
 WHERE
   ([id] = @id) AND
-  ([owner] = @owner);</value>
+  ([owner] = @owner);
+
+IF @@ROWCOUNT &gt; 0
+BEGIN
+  SELECT 1;
+END
+ELSE
+BEGIN
+  SELECT
+    1
+  FROM
+    [dipren].[partitions]
+  WHERE
+   ([id] = @id);
+END;</value>
   </data>
   <data name="QueryRetrieveJobById" xml:space="preserve">
     <value>SELECT
@@ -430,32 +436,25 @@ WHERE
   ([id] = @id);</value>
   </data>
   <data name="QueryTryAcquirePartition" xml:space="preserve">
-    <value>WITH [candidates] AS
+    <value>SELECT
+  1
+FROM
+  [dipren].[jobs] WITH (NOLOCK)
+WHERE
+  ([id] = @job_id);
+
+WITH [candidate] AS
 (
-  SELECT TOP (@candidates)
+  SELECT TOP 1
     [id]
   FROM
-    [dipren].[partitions] WITH (NOLOCK)
+    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
   WHERE
     ([job_id] = @job_id) AND
     (([owner] IS NULL) OR ([updated] &lt; @active)) AND
     ([is_completed] = 0)
   ORDER BY
     [remaining] DESC
-),
-[candidate] AS
-(
-  SELECT TOP 1
-    t2.[id]
-  FROM
-    [candidates] AS t1
-    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
-  WHERE
-    (t2.[job_id] = @job_id) AND
-    ((t2.[owner] IS NULL) OR (t2.[updated] &lt; @active)) AND
-    (t2.[is_completed] = 0)
-  ORDER BY
-    NEWID() DESC
 )
 UPDATE
   [dipren].[partitions]
@@ -484,12 +483,19 @@ WHERE
   ([dipren].[partitions].[id] = [candidate].[id]);</value>
   </data>
   <data name="QueryTryRequestSplit" xml:space="preserve">
-    <value>WITH [candidates] AS
+    <value>SELECT
+  1
+FROM
+  [dipren].[jobs] WITH (NOLOCK)
+WHERE
+  ([id] = @job_id);
+
+WITH [candidate] AS
 (
-  SELECT TOP (@candidates)
+  SELECT TOP 1
     [id]
   FROM
-    [dipren].[partitions] WITH (NOLOCK)
+    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
   WHERE
     ([job_id] = @job_id) AND
     ([owner] IS NOT NULL) AND
@@ -498,22 +504,6 @@ WHERE
     ([split_requester] IS NULL)
   ORDER BY
     [remaining] DESC
-),
-[candidate] AS
-(
-  SELECT TOP 1
-    t2.[id]
-  FROM
-    [candidates] AS t1
-    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
-  WHERE
-    (t2.[job_id] = @job_id) AND
-    (t2.[owner] IS NOT NULL) AND
-    (t2.[updated] &gt;= @active) AND
-    (t2.[is_completed] = 0) AND
-    (t2.[split_requester] IS NULL)
-  ORDER BY
-    NEWID() DESC
 )
 UPDATE
   [dipren].[partitions]

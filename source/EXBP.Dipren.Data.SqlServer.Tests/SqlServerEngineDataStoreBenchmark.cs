@@ -1,6 +1,4 @@
 ﻿
-using System.Globalization;
-
 using EXBP.Dipren.Data.Postgres.Tests;
 using EXBP.Dipren.Data.Tests;
 
@@ -116,17 +114,6 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
             await EngineDataStoreBenchmarkReport.GenerateAsync(REPORT_DIRECTORY, result);
 
             TestContext.WriteLine($"{result.Duration.TotalSeconds}");
-
-            return result;
-        }
-
-        private async Task<string> FormatSnapshotsAsync(EngineDataStoreBenchmarkRecording source)
-        {
-            await using StringWriter writer = new StringWriter(CultureInfo.InvariantCulture);
-
-            await source.SaveSnapshotsAsync(writer, true);
-
-            string result = writer.ToString();
 
             return result;
         }

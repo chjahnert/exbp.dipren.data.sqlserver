@@ -87,20 +87,6 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///   Looks up a localized string similar to SELECT
         ///  COUNT(1) AS [count]
         ///FROM
-        ///  [dipren].[jobs]
-        ///WHERE
-        ///  ([id] = @id);.
-        /// </summary>
-        internal static string QueryDoesJobExist {
-            get {
-                return ResourceManager.GetString("QueryDoesJobExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SELECT
-        ///  COUNT(1) AS [count]
-        ///FROM
         ///  [dipren].[partitions]
         ///WHERE
         ///  ([id] = @id);.
@@ -406,29 +392,35 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH [candidates] AS
+        ///   Looks up a localized string similar to SELECT
+        ///  1
+        ///FROM
+        ///  [dipren].[jobs] WITH (NOLOCK)
+        ///WHERE
+        ///  ([id] = @job_id);
+        ///
+        ///WITH [candidate] AS
         ///(
-        ///  SELECT TOP (@candidates)
+        ///  SELECT TOP 1
         ///    [id]
         ///  FROM
-        ///    [dipren].[partitions] WITH (NOLOCK)
+        ///    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
         ///  WHERE
         ///    ([job_id] = @job_id) AND
         ///    (([owner] IS NULL) OR ([updated] &lt; @active)) AND
         ///    ([is_completed] = 0)
         ///  ORDER BY
         ///    [remaining] DESC
-        ///),
-        ///[candidate] AS
-        ///(
-        ///  SELECT TOP 1
-        ///    t2.[id]
-        ///  FROM
-        ///    [candidates] AS t1
-        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
-        ///  WHERE
-        ///    (t2.[job_id] = @job_id) AND
-        ///    ((t2.[owner] IS NULL) OR (t2.[updat [rest of string was truncated]&quot;;.
+        ///)
+        ///UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [updated] = @updated,
+        ///  [owner] = @owner,
+        ///  [acquired] = ([acquired] + 1)
+        ///OUTPUT
+        ///  INSERTED.[id] AS [id],
+        ///  IN [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryAcquirePartition {
             get {
@@ -437,12 +429,19 @@ namespace EXBP.Dipren.Data.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH [candidates] AS
+        ///   Looks up a localized string similar to SELECT
+        ///  1
+        ///FROM
+        ///  [dipren].[jobs] WITH (NOLOCK)
+        ///WHERE
+        ///  ([id] = @job_id);
+        ///
+        ///WITH [candidate] AS
         ///(
-        ///  SELECT TOP (@candidates)
+        ///  SELECT TOP 1
         ///    [id]
         ///  FROM
-        ///    [dipren].[partitions] WITH (NOLOCK)
+        ///    [dipren].[partitions] WITH (ROWLOCK, UPDLOCK, READPAST)
         ///  WHERE
         ///    ([job_id] = @job_id) AND
         ///    ([owner] IS NOT NULL) AND
@@ -451,16 +450,15 @@ namespace EXBP.Dipren.Data.SqlServer {
         ///    ([split_requester] IS NULL)
         ///  ORDER BY
         ///    [remaining] DESC
-        ///),
-        ///[candidate] AS
-        ///(
-        ///  SELECT TOP 1
-        ///    t2.[id]
-        ///  FROM
-        ///    [candidates] AS t1
-        ///    INNER JOIN [dipren].[partitions] AS t2 WITH (ROWLOCK) ON (t1.[id] = t2.[id])
-        ///  WHERE
-        ///    (t2.[job_id] = @job_id [rest of string was truncated]&quot;;.
+        ///)
+        ///UPDATE
+        ///  [dipren].[partitions]
+        ///SET
+        ///  [split_requester] = @requester
+        ///FROM
+        ///  [candidate]
+        ///WHERE
+        ///  ([dipre [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryTryRequestSplit {
             get {
