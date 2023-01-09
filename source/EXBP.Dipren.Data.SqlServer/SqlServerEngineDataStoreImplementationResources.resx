@@ -118,24 +118,18 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="QueryCountIncompletePartitions" xml:space="preserve">
-    <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
-SELECT
+    <value>SELECT
   (SELECT COUNT_BIG(1) FROM [dipren].[jobs] WHERE ([id] = @job_id)) AS [job_count],
   (SELECT COUNT_BIG(1) FROM [dipren].[partitions] WHERE ([job_id] = @job_id) AND ([is_completed] = 0)) AS [partition_count];</value>
   </data>
   <data name="QueryCountJobs" xml:space="preserve">
-    <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
-SELECT
+    <value>SELECT
   COUNT_BIG(1) AS [count]
 FROM
   [dipren].[jobs];</value>
   </data>
   <data name="QueryDoesPartitionExist" xml:space="preserve">
-    <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
-SELECT
+    <value>SELECT
   COUNT(1) AS [count]
 FROM
   [dipren].[partitions]
@@ -340,9 +334,7 @@ BEGIN
 END;</value>
   </data>
   <data name="QueryRetrieveJobById" xml:space="preserve">
-    <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
-SELECT
+    <value>SELECT
   [id] AS "id",
   [created] AS [created],
   [updated] AS [updated],
@@ -423,9 +415,7 @@ FROM
   INNER JOIN [dipren].[jobs] AS t2 ON (t1.[id] = t2.[id]);</value>
   </data>
   <data name="QueryRetrievePartitionById" xml:space="preserve">
-    <value>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
-SELECT
+    <value>SELECT
   [id] AS [id],
   [job_id] AS [job_id],
   [created] AS [created],
