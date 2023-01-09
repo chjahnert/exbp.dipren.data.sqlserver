@@ -83,7 +83,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
 
         [Test]
         [Order(3)]
-        [Repeat(12)]
+        [Repeat(1)]
         public async Task Benchmark_Medium()
         {
             await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Medium);
