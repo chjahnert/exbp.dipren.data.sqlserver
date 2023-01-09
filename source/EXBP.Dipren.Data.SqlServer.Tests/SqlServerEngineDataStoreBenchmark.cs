@@ -13,7 +13,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
     [TestFixture]
     internal class SqlServerEngineDataStoreBenchmark
     {
-        private const string REPORT_DIRECTORY = "../benchmarks/branch";
+        private const string REPORT_DIRECTORY = "../benchmarks/";
 
         private const string DATABASE_NAME_MASTER = "master";
         private const string DATABASE_NAME_DIPREN = "dipren";
