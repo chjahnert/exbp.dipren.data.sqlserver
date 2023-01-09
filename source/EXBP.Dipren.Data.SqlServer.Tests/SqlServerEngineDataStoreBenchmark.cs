@@ -1,6 +1,5 @@
 ﻿
-using System.Globalization;
-
+using EXBP.Dipren.Data.Postgres.Tests;
 using EXBP.Dipren.Data.Tests;
 
 using Microsoft.Data.SqlClient;
@@ -14,8 +13,11 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
     [TestFixture]
     internal class SqlServerEngineDataStoreBenchmark
     {
+        private const string REPORT_DIRECTORY = "../benchmarks/branch";
+
         private const string DATABASE_NAME_MASTER = "master";
         private const string DATABASE_NAME_DIPREN = "dipren";
+
 
         private readonly string _connectionStringMaster;
         private readonly string _connectionStringDipren;
@@ -66,11 +68,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         [Repeat(1)]
         public async Task Benchmark_Tiny()
         {
-            EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Tiny);
-
-            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
-
-            string csv = await this.FormatSnapshotsAsync(result);
+            await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Tiny);
         }
 
         [Test]
@@ -78,11 +76,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         [Repeat(1)]
         public async Task Benchmark_Small()
         {
-            EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Small);
-
-            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
-
-            string csv = await this.FormatSnapshotsAsync(result);
+            await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Small);
         }
 
         [Test]
@@ -90,11 +84,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         [Repeat(1)]
         public async Task Benchmark_Medium()
         {
-            EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Medium);
-
-            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
-
-            string csv = await this.FormatSnapshotsAsync(result);
+            await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Medium);
         }
 
         [Test]
@@ -102,11 +92,7 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         [Repeat(1)]
         public async Task Benchmark_Large()
         {
-            EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Large);
-
-            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
-
-            string csv = await this.FormatSnapshotsAsync(result);
+            await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Large);
         }
 
         [Test]
@@ -114,31 +100,20 @@ namespace EXBP.Dipren.Data.SqlServer.Tests
         [Repeat(1)]
         public async Task Benchmark_Huge()
         {
-            EngineDataStoreBenchmarkResult result = await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Huge);
-
-            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
-
-            string csv = await this.FormatSnapshotsAsync(result);
+            await this.RunBenchmarkAsync(EngineDataStoreBenchmarkSettings.Huge);
         }
 
 
-        private async Task<EngineDataStoreBenchmarkResult> RunBenchmarkAsync(EngineDataStoreBenchmarkSettings settings)
+        private async Task<EngineDataStoreBenchmarkRecording> RunBenchmarkAsync(EngineDataStoreBenchmarkSettings settings)
         {
             IEngineDataStoreFactory factory = new SqlServerEngineDataStoreFactory(this._connectionStringDipren);
             EngineDataStoreBenchmark benchmark = new EngineDataStoreBenchmark(factory, settings);
 
-            EngineDataStoreBenchmarkResult result = await benchmark.RunAsync();
+            EngineDataStoreBenchmarkRecording result = await benchmark.RunAsync();
 
-            return result;
-        }
+            await EngineDataStoreBenchmarkReport.GenerateAsync(REPORT_DIRECTORY, result);
 
-        private async Task<string> FormatSnapshotsAsync(EngineDataStoreBenchmarkResult source)
-        {
-            await using StringWriter writer = new StringWriter(CultureInfo.InvariantCulture);
-
-            await source.SaveSnapshotsAsync(writer, true);
-
-            string result = writer.ToString();
+            TestContext.WriteLine($"{result.Duration.TotalSeconds}");
 
             return result;
         }
