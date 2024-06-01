@@ -48,9 +48,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20230109-1" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="EXBP.Dipren" Version="1.0.0-preview-20240829-1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
   
   <ItemGroup>
