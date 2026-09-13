@@ -1,0 +1,20 @@
+{
+    "name": "exbp",
+    "interface": {
+        "displayName": "EXBP"
+    },
+    "plugins": [
+        {
+            "name": "exbp-coding-skills",
+            "source": {
+                "source": "url",
+                "url": "https://github.com/chjahnert/exbp.agents.git"
+            },
+            "policy": {
+                "installation": "AVAILABLE",
+                "authentication": "ON_INSTALL"
+            },
+            "category": "Productivity"
+        }
+    ]
+}
